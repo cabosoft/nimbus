@@ -7,3 +7,6 @@ xcuserdata
 *.xcworkspace
 node_modules
 coverage/
+
+thirdparty/AFNetworking/
+thirdparty/JSONKit/
