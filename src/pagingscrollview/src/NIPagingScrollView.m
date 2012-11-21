@@ -80,6 +80,8 @@ const CGFloat NIPagingScrollViewDefaultPageMargin = 10;
 
   self.pagingScrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
   self.pagingScrollView.pagingEnabled = YES;
+    self.pagingScrollView.bounces = YES;
+    self.pagingScrollView.alwaysBounceHorizontal = YES;
   self.pagingScrollView.scrollsToTop = NO;
 
   self.pagingScrollView.autoresizingMask = (UIViewAutoresizingFlexibleWidth
