@@ -74,6 +74,28 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// dded to support storyboarding
+-(void)awakeFromNib
+{
+	[super awakeFromNib];
+    // Default Configuration Settings
+    self.toolbarIsTranslucent = YES;
+    self.hidesChromeWhenScrolling = YES;
+    self.chromeCanBeHidden = YES;
+    self.animateMovingToNextAndPreviousPhotos = NO;
+    
+    // The scrubber is better use of the extra real estate on the iPad.
+    // If you ask me, though, the scrubber works pretty well on the iPhone too. It's up
+    // to you if you want to use it in your own implementations.
+    self.scrubberIsEnabled = NIIsPad();
+    
+    // Allow the photos to display beneath the status bar.
+    self.wantsFullScreenLayout = YES;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)addTapGestureToView {
   if ([self isViewLoaded]
       && nil != NIUITapGestureRecognizerClass()
