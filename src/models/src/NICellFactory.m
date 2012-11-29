@@ -64,7 +64,10 @@
 
   // Allow the cell to configure itself with the object's information.
   if ([cell respondsToSelector:@selector(shouldUpdateCellWithObject:)]) {
-    [(id<NICell>)cell shouldUpdateCellWithObject:object];
+      if ([(id<NICell>)cell shouldUpdateCellWithObject:object]) {
+          [cell setNeedsLayout];
+          [cell setNeedsDisplay];
+      }
   }
 
   return cell;
