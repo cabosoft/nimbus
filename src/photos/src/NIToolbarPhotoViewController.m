@@ -351,6 +351,7 @@
   }
 
   // Show/hide the system chrome.
+  CGFloat statusBarHeight = NIStatusBarHeight();
   if ([[UIApplication sharedApplication] respondsToSelector:
        @selector(setStatusBarHidden:withAnimation:)]) {
     // On 3.2 and higher we can slide the status bar out.
@@ -379,21 +380,6 @@
     }
   }
 
-  // If there is a navigation bar, place it at its final location.
-  CGRect navigationBarFrame = CGRectZero;
-  if (nil != self.navigationController.navigationBar) {
-    navigationBarFrame = self.navigationController.navigationBar.frame;
-    CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
-    CGFloat statusBarHeight = MIN(statusBarFrame.size.width, statusBarFrame.size.height);
-
-    if (isVisible) {
-      navigationBarFrame.origin.y = statusBarHeight;
-
-    } else {
-      navigationBarFrame.origin.y = 0;
-    }
-  }
-
   if (animated) {
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDelegate:self];
@@ -410,7 +396,8 @@
     self.toolbar.frame = toolbarFrame;
   }
   if (nil != self.navigationController.navigationBar) {
-    self.navigationController.navigationBar.frame = navigationBarFrame;
+    CGAffineTransform transform = isVisible ? CGAffineTransformIdentity : CGAffineTransformMakeTranslation(0, -statusBarHeight);
+	self.navigationController.navigationBar.transform = transform;
     self.navigationController.navigationBar.alpha = (isVisible ? 1 : 0);
   }
 
