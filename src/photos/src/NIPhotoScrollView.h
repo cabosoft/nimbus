@@ -43,6 +43,7 @@
   CGSize _photoDimensions;
 
   // Configurable State
+  BOOL _zoomToFit;
   BOOL _zoomingIsEnabled;
   BOOL _zoomingAboveOriginalSizeIsEnabled;
   BOOL _doubleTapToZoomIsEnabled;
@@ -53,6 +54,7 @@
 
 #pragma mark Configuring Functionality
 
+@property (nonatomic, readwrite, assign, getter=isZoomingEnabled) BOOL zoomToFit; // default: yes
 @property (nonatomic, readwrite, assign, getter=isZoomingEnabled) BOOL zoomingIsEnabled; // default: yes
 @property (nonatomic, readwrite, assign, getter=isZoomingAboveOriginalSizeEnabled) BOOL zoomingAboveOriginalSizeIsEnabled; // default: yes
 @property (nonatomic, readwrite, assign, getter=isDoubleTapToZoomEnabled) BOOL doubleTapToZoomIsEnabled; // default: yes

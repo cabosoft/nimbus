@@ -96,6 +96,7 @@
 @synthesize reuseIdentifier = _reuseIdentifier;
 @synthesize photoSize   = _photoSize;
 @synthesize photoDimensions = _photoDimensions;
+@synthesize zoomToFit = _zoomToFit;
 @synthesize zoomingIsEnabled = _zoomingIsEnabled;
 @synthesize zoomingAboveOriginalSizeIsEnabled = _zoomingAboveOriginalSizeIsEnabled;
 @synthesize photoScrollViewDelegate = _photoScrollViewDelegate;
@@ -109,7 +110,8 @@
 - (id)initWithFrame:(CGRect)frame {
   if ((self = [super initWithFrame:frame])) {
     // Default configuration.
-    self.zoomingIsEnabled = YES;
+	self.zoomToFit = YES;
+	self.zoomingIsEnabled = YES;
     self.zoomingAboveOriginalSizeIsEnabled = YES;
     self.doubleTapToZoomIsEnabled = YES;
 
@@ -236,6 +238,22 @@
   }
 }
 
+- (void) scaleToFit
+{
+	if ((self.zoomToFit) && (_imageView.image != nil)) {
+		CGSize imageSize = _imageView.image.size;
+		CGSize boundsSize = _scrollView.frame.size;
+		
+		CGFloat fitScale = [self scaleForSize: imageSize
+								   boundsSize: boundsSize
+							  useMinimalScale: YES];
+		
+		_scrollView.zoomScale = boundf(fitScale, _scrollView.minimumZoomScale, _scrollView.maximumZoomScale);
+	} else {
+		_scrollView.zoomScale = _scrollView.minimumZoomScale;
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,7 +272,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)pageDidDisappear {
-  _scrollView.zoomScale = _scrollView.minimumZoomScale;
+	[self scaleToFit];
 }
 
 
@@ -289,8 +307,8 @@
   [self setMaxMinZoomScalesForCurrentBounds];
 
   // Start off with the image fully-visible on the screen.
-  _scrollView.zoomScale = _scrollView.minimumZoomScale;
-
+  [self scaleToFit];
+	
   [self setNeedsLayout];
 }
 
@@ -319,8 +337,8 @@
     [self setMaxMinZoomScalesForCurrentBounds];
 
     // Fit the image on screen.
-    _scrollView.zoomScale = _scrollView.minimumZoomScale;
-
+	[self scaleToFit];
+	  
     // Disable zoom bouncing if zooming is disabled, otherwise the view will allow pinching.
     _scrollView.bouncesZoom = enabled;
 
