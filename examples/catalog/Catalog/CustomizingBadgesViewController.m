@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,6 +46,11 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+
   self.view.backgroundColor = [UIColor whiteColor];
 
   NIBadgeView* badgeView = [[NIBadgeView alloc] initWithFrame:CGRectZero];
@@ -79,10 +84,6 @@
   [badgeView4 sizeToFit];
   badgeView4.frame = CGRectMake(0, CGRectGetMaxY(badgeView3.frame), badgeView4.frame.size.width, badgeView4.frame.size.height);
   [self.view addSubview:badgeView4];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 @end

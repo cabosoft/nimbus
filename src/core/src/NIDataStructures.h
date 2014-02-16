@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 #import <Foundation/Foundation.h>
 
+#import "NIPreprocessorMacros.h"
+
 /**
  * For classic computer science data structures.
+ *
+ * NILinkedList has been deprecated and will soon be removed altogether. Use NSMutableOrderedSet
+ * instead.
  *
  * iOS provides most of the important data structures such as arrays, dictionaries, and sets.
  * However, it is missing some lesser-used data structures such as linked lists. Nimbus makes
@@ -61,13 +66,14 @@
  * enforce ordering.
  *
  *
- *      @ingroup NimbusCore
- *      @defgroup Data-Structures Data Structures
- *      @{
+ * @ingroup NimbusCore
+ * @defgroup Data-Structures Data Structures
+ * @{
  */
 
 @class NILinkedListNode;
 
+__NI_DEPRECATED_METHOD // Use NSMutableOrderedSet instead. MAINTENANCE: Remove by Feb 28, 2014.
 @interface NILinkedListLocation : NSObject
 @end
 
@@ -106,6 +112,7 @@
  * structure we could easily run into an O(N^2) exponential-time operation which is
  * absolutely unacceptable.
  */
+__NI_DEPRECATED_METHOD // Use NSMutableOrderedSet instead. MAINTENANCE: Remove by Feb 28, 2014.
 @interface NILinkedList : NSObject <NSCopying, NSCoding, NSFastEnumeration>
 
 - (NSUInteger)count;
@@ -149,9 +156,7 @@
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of Data Structures //////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @class NILinkedList
@@ -277,7 +282,7 @@
  *  // NIMemoryCache for an example of this in action.
  * @endcode
  *
- *      @sa NIMemoryCache
+ * @sa NIMemoryCache
  *
  *
  * <h3>Using the location object for constant time operations</h3>
@@ -306,7 +311,7 @@
  *
  * Identical to [[[NILinkedList alloc] init] autorelease];
  *
- *      @fn NILinkedList::linkedList
+ * @fn NILinkedList::linkedList
  */
 
 /**
@@ -314,16 +319,16 @@
  *
  * Identical to [[[NILinkedList alloc] initWithArray:array] autorelease];
  *
- *      @fn NILinkedList::linkedListWithArray:
+ * @fn NILinkedList::linkedListWithArray:
  */
 
 /**
  * Initializes a newly allocated linked list by placing in it the objects contained
  * in a given array.
  *
- *      @fn NILinkedList::initWithArray:
- *      @param anArray An array.
- *      @returns A linked list initialized to contain the objects in anArray.
+ * @fn NILinkedList::initWithArray:
+ * @param anArray An array.
+ * @returns A linked list initialized to contain the objects in anArray.
  */
 
 
@@ -332,40 +337,40 @@
 /**
  * Returns the number of objects currently in the linked list.
  *
- *      @fn NILinkedList::count
- *      @returns The number of objects currently in the linked list.
+ * @fn NILinkedList::count
+ * @returns The number of objects currently in the linked list.
  */
 
 /**
  * Returns the first object in the linked list.
  *
- *      @fn NILinkedList::firstObject
- *      @returns The first object in the linked list. If the linked list is empty, returns nil.
+ * @fn NILinkedList::firstObject
+ * @returns The first object in the linked list. If the linked list is empty, returns nil.
  */
 
 /**
  * Returns the last object in the linked list.
  *
- *      @fn NILinkedList::lastObject
- *      @returns The last object in the linked list. If the linked list is empty, returns nil.
+ * @fn NILinkedList::lastObject
+ * @returns The last object in the linked list. If the linked list is empty, returns nil.
  */
 
 /**
  * Returns an array containing the linked list's objects, or an empty array if the linked list
  * has no objects.
  *
- *      @fn NILinkedList::allObjects
- *      @returns An array containing the linked list's objects, or an empty array if the linked
+ * @fn NILinkedList::allObjects
+ * @returns An array containing the linked list's objects, or an empty array if the linked
  *               list has no objects. The objects will be in the same order as the linked list.
  */
 
 /**
  * Returns an enumerator object that lets you access each object in the linked list.
  *
- *      @fn NILinkedList::objectEnumerator
- *      @returns An enumerator object that lets you access each object in the linked list, in
+ * @fn NILinkedList::objectEnumerator
+ * @returns An enumerator object that lets you access each object in the linked list, in
  *               order, from the first object to the last.
- *      @attention When you use this method you must not modify the linked list during enumeration.
+ * @attention When you use this method you must not modify the linked list during enumeration.
  */
 
 /**
@@ -373,15 +378,15 @@
  *
  *      Run-time: O(count) linear
  *
- *      @fn NILinkedList::containsObject:
- *      @returns YES if anObject is present in the linked list, otherwise NO.
+ * @fn NILinkedList::containsObject:
+ * @returns YES if anObject is present in the linked list, otherwise NO.
  */
 
 /**
  * Returns a string that represents the contents of the linked list, formatted as a property list.
  *
- *      @fn NILinkedList::description
- *      @returns A string that represents the contents of the linked list,
+ * @fn NILinkedList::description
+ * @returns A string that represents the contents of the linked list,
  *               formatted as a property list.
  */
 
@@ -393,8 +398,8 @@
  *
  *      Run-time: O(1) constant
  *
- *      @fn NILinkedList::addObject:
- *      @returns A location within the linked list.
+ * @fn NILinkedList::addObject:
+ * @returns A location within the linked list.
  */
 
 /**
@@ -402,7 +407,7 @@
  *
  *      Run-time: O(l) linear with the length of the given array
  *
- *      @fn NILinkedList::addObjectsFromArray:
+ * @fn NILinkedList::addObjectsFromArray:
  */
 
 /** @name Removing Objects */
@@ -412,7 +417,7 @@
  *
  *      Run-time: Theta(count) linear
  *
- *      @fn NILinkedList::removeAllObjects
+ * @fn NILinkedList::removeAllObjects
  */
 
 /**
@@ -420,7 +425,7 @@
  *
  *      Run-time: O(count) linear
  *
- *      @fn NILinkedList::removeObject:
+ * @fn NILinkedList::removeObject:
  */
 
 /**
@@ -428,7 +433,7 @@
  *
  *      Run-time: O(1) constant
  *
- *      @fn NILinkedList::removeFirstObject
+ * @fn NILinkedList::removeFirstObject
  */
 
 /**
@@ -436,7 +441,7 @@
  *
  *      Run-time: O(1) constant
  *
- *      @fn NILinkedList::removeLastObject
+ * @fn NILinkedList::removeLastObject
  */
 
 
@@ -454,8 +459,8 @@
  *
  *      Run-time: O(count) linear
  *
- *      @fn NILinkedList::locationOfObject:
- *      @returns A location within the linked list.
+ * @fn NILinkedList::locationOfObject:
+ * @returns A location within the linked list.
  */
 
 /**
@@ -463,7 +468,7 @@
  *
  *      Run-time: O(1) constant
  *
- *      @fn NILinkedList::objectAtLocation:
+ * @fn NILinkedList::objectAtLocation:
  */
 
 /**
@@ -476,5 +481,5 @@
  *
  *      Run-time: O(1) constant
  *
- *      @fn NILinkedList::removeObjectAtLocation:
+ * @fn NILinkedList::removeObjectAtLocation:
  */

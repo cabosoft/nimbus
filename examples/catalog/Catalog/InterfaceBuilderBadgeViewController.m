@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,14 +38,12 @@
 //
 
 @interface InterfaceBuilderBadgeViewController ()
-@property (nonatomic, readwrite, retain) IBOutlet NIBadgeView* badgeView;
-@property (nonatomic, readwrite, retain) IBOutlet NIBadgeView* badgeView2;
+@property (nonatomic, retain) IBOutlet NIBadgeView* badgeView;
+@property (nonatomic, retain) IBOutlet NIBadgeView* badgeView2;
 @end
 
 @implementation InterfaceBuilderBadgeViewController
 
-@synthesize badgeView;
-@synthesize badgeView2;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:@"ApplicationBadges" bundle:nibBundleOrNil])) {
@@ -57,14 +55,15 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+
   self.badgeView.text = @"2";
   self.badgeView2.text = @"4";
   [self.badgeView sizeToFit];
   [self.badgeView2 sizeToFit];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 @end

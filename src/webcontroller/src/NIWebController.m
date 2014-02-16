@@ -1,6 +1,5 @@
 //
-// Copyright 2011 Roger Chapman
-// Copyright 2011 Benedikt Meurer
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 July 29, 2011 - Copyright 2009-2011 Facebook
 //
@@ -26,102 +25,71 @@
 #endif
 
 @interface NIWebController()
-@property (nonatomic, readwrite, NI_STRONG) UIWebView* webView;
-@property (nonatomic, readwrite, NI_STRONG) UIToolbar* toolbar;
-@property (nonatomic, readwrite, NI_STRONG) UIActionSheet* actionSheet;
+@property (nonatomic, strong) UIWebView* webView;
+@property (nonatomic, strong) UIToolbar* toolbar;
+@property (nonatomic, strong) UIActionSheet* actionSheet;
 
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* backButton;
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* forwardButton;
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* refreshButton;
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* stopButton;
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* actionButton;
-@property (nonatomic, readwrite, NI_STRONG) UIBarButtonItem* activityItem;
+@property (nonatomic, strong) UIBarButtonItem* backButton;
+@property (nonatomic, strong) UIBarButtonItem* forwardButton;
+@property (nonatomic, strong) UIBarButtonItem* refreshButton;
+@property (nonatomic, strong) UIBarButtonItem* stopButton;
+@property (nonatomic, strong) UIBarButtonItem* actionButton;
+@property (nonatomic, strong) UIBarButtonItem* activityItem;
 
-@property (nonatomic, readwrite, NI_STRONG) NSURL* loadingURL;
+@property (nonatomic, strong) NSURL* loadingURL;
 
-@property (nonatomic, readwrite, NI_STRONG) NSURLRequest* loadRequest;
+@property (nonatomic, strong) NSURLRequest* loadRequest;
 @end
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIWebController
 
-@synthesize webView = _webView;
-@synthesize toolbar = _toolbar;
-@synthesize actionSheet = _actionSheet;
-@synthesize backButton = _backButton;
-@synthesize forwardButton = _forwardButton;
-@synthesize refreshButton = _refreshButton;
-@synthesize stopButton = _stopButton;
-@synthesize actionButton = _actionButton;
-@synthesize activityItem = _activityItem;
-@synthesize actionSheetURL = _actionSheetURL;
-@synthesize loadingURL = _loadingURL;
-@synthesize loadRequest = _loadRequest;
-@synthesize toolbarHidden = _toolbarHidden;
-@synthesize toolbarTintColor = _toolbarTintColor;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
   _actionSheet.delegate = nil;
   _webView.delegate = nil;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithRequest:(NSURLRequest *)request {
   if ((self = [super initWithNibName:nil bundle:nil])) {
     self.hidesBottomBarWhenPushed = YES;
+
+    if ([self respondsToSelector:@selector(edgesForExtendedLayout)]) {
+      self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
+
     [self openRequest:request];
   }
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithURL:(NSURL *)URL {
   return [self initWithRequest:[NSURLRequest requestWithURL:URL]];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   return [self initWithRequest:nil];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Private
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didTapBackButton {
   [self.webView goBack];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didTapForwardButton {
   [self.webView goForward];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didTapRefreshButton {
   [self.webView reload];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didTapStopButton {
   [self.webView stopLoading];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didTapShareButton {
   // Dismiss the action menu if the user taps the action button again on the iPad.
   if ([self.actionSheet isVisible]) {
@@ -151,7 +119,7 @@
                        otherButtonTitles:nil];
 
     // Let -shouldPresentActionSheet: setup the action sheet
-    if (![self shouldPresentActionSheet:self.actionSheet]) {
+    if (![self shouldPresentActionSheet:self.actionSheet] || self.actionSheet.numberOfButtons == 0) {
       // A subclass decided to handle the action in another way
       self.actionSheet = nil;
       self.actionSheetURL = nil;
@@ -170,8 +138,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)updateToolbarWithOrientation:(UIInterfaceOrientation)interfaceOrientation {
   if (!self.toolbarHidden) {
     CGRect toolbarFrame = self.toolbar.frame;
@@ -188,13 +154,9 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UIViewController
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)updateWebViewFrame {
   if (self.toolbarHidden) {
     self.webView.frame = self.view.bounds;
@@ -204,8 +166,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadView {
   [super loadView];
 
@@ -285,7 +245,6 @@
                     flexibleSpace,
                     self.actionButton,
                     nil];
-  [self.view addSubview:self.toolbar];
 
   self.webView = [[UIWebView alloc] initWithFrame:CGRectZero];
   [self updateWebViewFrame];
@@ -299,41 +258,19 @@
   }
 
   [self.view addSubview:self.webView];
+  [self.view addSubview:self.toolbar];
 
   if (nil != self.loadRequest) {
     [self.webView loadRequest:self.loadRequest];
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)viewDidUnload {
-  [super viewDidUnload];
-
-  self.actionSheet.delegate = nil;
-  self.webView.delegate = nil;
-
-  self.actionSheet = nil;
-  self.webView = nil;
-  self.toolbar = nil;
-  self.backButton = nil;
-  self.forwardButton = nil;
-  self.refreshButton = nil;
-  self.stopButton = nil;
-  self.actionButton = nil;
-  self.activityItem = nil;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
 
   [self updateToolbarWithOrientation:self.interfaceOrientation];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewWillDisappear:(BOOL)animated {
   // If the browser launched the media player, it steals the key window and never gives it
   // back, so this is a way to try and fix that.
@@ -342,27 +279,19 @@
   [super viewWillDisappear:animated];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
   return NIIsSupportedOrientation(interfaceOrientation);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
                                          duration:(NSTimeInterval)duration {
   [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
   [self updateToolbarWithOrientation:toInterfaceOrientation];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UIWebViewDelegate
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)webView:(UIWebView*)webView shouldStartLoadWithRequest:(NSURLRequest*)request navigationType:(UIWebViewNavigationType)navigationType {
   self.loadingURL = [request.mainDocumentURL copy];
   self.backButton.enabled = [self.webView canGoBack];
@@ -370,8 +299,6 @@
   return YES;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)webViewDidStartLoad:(UIWebView*)webView {
   self.title = NSLocalizedString(@"Loading...", @"");
   if (!self.navigationItem.rightBarButtonItem) {
@@ -392,8 +319,6 @@
   self.forwardButton.enabled = [self.webView canGoForward];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)webViewDidFinishLoad:(UIWebView*)webView {
   self.loadingURL = nil;
   self.title = [self.webView stringByEvaluatingJavaScriptFromString:@"document.title"];
@@ -416,20 +341,14 @@
   self.forwardButton.enabled = [self.webView canGoForward];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)webView:(UIWebView*)webView didFailLoadWithError:(NSError*)error {
   self.loadingURL = nil;
   [self webViewDidFinishLoad:webView];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - UIActionSheetDelegate
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   if (actionSheet == self.actionSheet) {
     if (buttonIndex == 0) {
@@ -440,8 +359,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
   if (actionSheet == self.actionSheet) {
     self.actionSheet.delegate = nil;
@@ -450,26 +367,18 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Public
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSURL *)URL {
   return self.loadingURL ? self.loadingURL : self.webView.request.mainDocumentURL;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)openURL:(NSURL*)URL {
   NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:URL];
   [self openRequest:request];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)openRequest:(NSURLRequest *)request {
   self.loadRequest = request;
 
@@ -483,15 +392,11 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)openHTMLString:(NSString*)htmlString baseURL:(NSURL*)baseUrl {
 	NIDASSERT([self isViewLoaded]);
 	[_webView loadHTMLString:htmlString baseURL:baseUrl];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setToolbarHidden:(BOOL)hidden {
   _toolbarHidden = hidden;
   if ([self isViewLoaded]) {
@@ -500,8 +405,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setToolbarTintColor:(UIColor*)color {
   if (color != _toolbarTintColor) {
     _toolbarTintColor = color;
@@ -512,15 +415,12 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)shouldPresentActionSheet:(UIActionSheet *)actionSheet {
-  if (actionSheet == self.actionSheet) {
+  if (actionSheet == self.actionSheet && nil != self.actionSheetURL) {
     [self.actionSheet addButtonWithTitle:NSLocalizedString(@"Open in Safari", @"")];
     [self.actionSheet addButtonWithTitle:NSLocalizedString(@"Copy URL", @"")];
   }
   return YES;
 }
-
 
 @end

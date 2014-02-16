@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -28,20 +28,10 @@
 // The contentInset around the entire button on the top, left, bottom, and right sides.
 static const CGFloat kDefaultContentInset = 0;
 
-// The amount of space between the bottom of the image and the top of the text.
-static const CGFloat kImageBottomMargin = 5;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NILauncherButtonView
 
-@synthesize label = _label;
-@synthesize button = _button;
-@synthesize contentInset = _contentInset;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
   if ((self = [super initWithReuseIdentifier:reuseIdentifier])) {
     _contentInset = UIEdgeInsetsMake(kDefaultContentInset, kDefaultContentInset, kDefaultContentInset, kDefaultContentInset);
@@ -55,7 +45,7 @@ static const CGFloat kImageBottomMargin = 5;
     _label.numberOfLines = 1;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < NIIOS_6_0
     _label.textAlignment = UITextAlignmentCenter;
-    _label.lineBreakMode = UILineBreakModeTailTruncation;
+    _label.lineBreakMode = NSLineBreakByTruncatingTail;
 #else
     _label.textAlignment = NSTextAlignmentCenter;
     _label.lineBreakMode = NSLineBreakByTruncatingTail;
@@ -72,8 +62,6 @@ static const CGFloat kImageBottomMargin = 5;
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)layoutSubviews {
   [super layoutSubviews];
 
@@ -84,31 +72,22 @@ static const CGFloat kImageBottomMargin = 5;
   self.button.frame = NIRectContract(contentBounds, 0, self.label.bounds.size.height);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - NIRecyclableView
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)prepareForReuse {
   self.label.text = nil;
   [self.button setImage:nil forState:UIControlStateNormal];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - NILauncherModelObjectView
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)shouldUpdateViewWithObject:(NILauncherViewObject *)object {
   self.label.text = object.title;
   [self.button setImage:object.image forState:UIControlStateNormal];
 
   [self setNeedsLayout];
 }
-
 
 @end

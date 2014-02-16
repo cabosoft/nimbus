@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,23 +26,20 @@
 
 NI_FIX_CATEGORY_BUG(UIToolbar_NIStyleable)
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation UIToolbar (NIStyleable)
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)applyToolbarStyleWithRuleSet:(NICSSRuleset *)ruleSet {
+- (void)applyToolbarStyleWithRuleSet:(NICSSRuleset *)ruleSet inDOM: (NIDOM*) dom {
   if ([ruleSet hasTintColor]) { self.tintColor = ruleSet.tintColor; }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)applyStyleWithRuleSet:(NICSSRuleset *)ruleSet {
-  [self applyViewStyleWithRuleSet:ruleSet];
-  [self applyToolbarStyleWithRuleSet:ruleSet];
+  [self applyStyleWithRuleSet:ruleSet inDOM:nil];
 }
 
+- (void)applyStyleWithRuleSet:(NICSSRuleset *)ruleSet inDOM:(NIDOM *)dom {
+  [self applyViewStyleWithRuleSet:ruleSet inDOM:dom];
+  [self applyToolbarStyleWithRuleSet:ruleSet inDOM:dom];
+}
 
 @end

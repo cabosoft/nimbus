@@ -1,5 +1,5 @@
 //
-// Copyright 2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,26 +26,14 @@ static const CGFloat kBorderSize = 1;
 static const CGSize kCellImageSize = {44, 44};
 
 @interface NIGroupedCellBackground()
-@property (nonatomic, NI_STRONG) NSMutableDictionary* cachedImages;
+@property (nonatomic, strong) NSMutableDictionary* cachedImages;
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIGroupedCellBackground
 
-@synthesize innerBackgroundColor = _innerBackgroundColor;
-@synthesize highlightedInnerGradientColors = _highlightedInnerGradientColors;
-@synthesize shadowWidth = _shadowWidth;
-@synthesize shadowColor = _shadowColor;
-@synthesize borderColor = _borderColor;
-@synthesize dividerColor = _dividerColor;
-@synthesize borderRadius = _borderRadius;
-@synthesize cachedImages = _cachedImages;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)init {
   if ((self = [super init])) {
     _innerBackgroundColor = [UIColor whiteColor];
@@ -54,6 +42,7 @@ static const CGSize kCellImageSize = {44, 44};
                                        (id)RGBCOLOR(16, 93, 230).CGColor,
                                        nil];
     _shadowWidth = 4;
+    _shadowOffset = CGSizeMake(0, 1);
     _shadowColor = RGBACOLOR(0, 0, 0, 0.3f);
     _borderColor = RGBACOLOR(0, 0, 0, 0.07f);
     _dividerColor = RGBCOLOR(230, 230, 230);
@@ -63,15 +52,24 @@ static const CGSize kCellImageSize = {44, 44};
   return self;
 }
 
+// We want to draw the borders and shadows on single retina-pixel boundaries if possible, but
+// we need to avoid doing this on non-retina devices because it'll look blurry.
++ (CGFloat)minPixelOffset {
+  if (NIIsRetina()) {
+    return 0.5f;
+  } else {
+    return 1.f;
+  }
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applySinglePathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat midx = CGRectGetMidX(rect) + 0.5f;
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat midy = CGRectGetMidY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat midx = CGRectGetMidX(rect) + minPixelOffset;
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat midy = CGRectGetMidY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -86,15 +84,14 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyTopPathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat midx = CGRectGetMidX(rect) + 0.5f;
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat midy = CGRectGetMidY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat midx = CGRectGetMidX(rect) + minPixelOffset;
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat midy = CGRectGetMidY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -107,15 +104,14 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyBottomPathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat midx = CGRectGetMidX(rect) + 0.5f;
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat midy = CGRectGetMidY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat midx = CGRectGetMidX(rect) + minPixelOffset;
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat midy = CGRectGetMidY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -128,12 +124,11 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyDividerPathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -143,12 +138,11 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyLeftPathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -158,12 +152,11 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyRightPathToContext:(CGContextRef)c rect:(CGRect)rect {
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -173,15 +166,14 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_applyPathToContext:(CGContextRef)c rect:(CGRect)rect isFirst:(BOOL)isFirst isLast:(BOOL)isLast {
-  CGFloat minx = CGRectGetMinX(rect) + 0.5f;
-  CGFloat midx = CGRectGetMidX(rect) + 0.5f;
-  CGFloat maxx = CGRectGetMaxX(rect) - 0.5f;
-  CGFloat miny = CGRectGetMinY(rect) - 0.5f;
-  CGFloat midy = CGRectGetMidY(rect) - 0.5f;
-  CGFloat maxy = CGRectGetMaxY(rect) + 0.5f;
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGFloat minx = CGRectGetMinX(rect) + minPixelOffset;
+  CGFloat midx = CGRectGetMidX(rect) + minPixelOffset;
+  CGFloat maxx = CGRectGetMaxX(rect) - minPixelOffset;
+  CGFloat miny = CGRectGetMinY(rect) - minPixelOffset;
+  CGFloat midy = CGRectGetMidY(rect) - minPixelOffset;
+  CGFloat maxy = CGRectGetMaxY(rect) + minPixelOffset;
 
   CGContextBeginPath(c);
 
@@ -251,8 +243,6 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextClosePath(c);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)_imageForHighlight {
   CGRect imageRect = CGRectMake(0, 0, 1, kCellImageSize.height);
   UIGraphicsBeginImageContextWithOptions(imageRect.size, NO, 0);
@@ -274,9 +264,7 @@ static const CGSize kCellImageSize = {44, 44};
   return image;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (UIImage *)_imageForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted {
+- (UIImage *)_imageForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted drawDivider:(BOOL)drawDivider {
   CGRect imageRect = CGRectMake(0, 0, kCellImageSize.width, kCellImageSize.height);
   UIGraphicsBeginImageContextWithOptions(imageRect.size, NO, 0);
 
@@ -315,7 +303,7 @@ static const CGSize kCellImageSize = {44, 44};
 
     [self _applyPathToContext:cx rect:shadowFrame isFirst:first isLast:last];
 
-    CGContextSetShadowWithColor(cx, CGSizeMake(0, 1), self.shadowWidth, self.shadowColor.CGColor);
+    CGContextSetShadowWithColor(cx, self.shadowOffset, self.shadowWidth, self.shadowColor.CGColor);
     CGContextDrawPath(cx, kCGPathFill);
     CGContextRestoreGState(cx);
   }
@@ -326,7 +314,8 @@ static const CGSize kCellImageSize = {44, 44};
   CGContextRestoreGState(cx);
 
   // We want the cell border to overlap the shadow and the content.
-  CGRect borderFrame = CGRectInset(contentFrame, -0.5f, -0.5f);
+  CGFloat minPixelOffset = [[self class] minPixelOffset];
+  CGRect borderFrame = CGRectInset(contentFrame, -minPixelOffset, -minPixelOffset);
   if (!highlighted) {
     // Draw the cell border.
     CGContextSaveGState(cx);
@@ -355,7 +344,7 @@ static const CGSize kCellImageSize = {44, 44};
   }
 
   // Draw the cell divider.
-  if (!last) {
+  if (!last && drawDivider) {
     CGContextSaveGState(cx);
     CGContextSetLineWidth(cx, kBorderSize);
     CGContextSetStrokeColorWithColor(cx, self.dividerColor.CGColor);
@@ -367,65 +356,67 @@ static const CGSize kCellImageSize = {44, 44};
   UIImage* image = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
 
-  CGFloat capWidth = floorf(image.size.width / 2);
-  CGFloat capHeight = floorf(image.size.height / 2);
+  CGFloat capWidth = NICGFloatFloor(image.size.width / 2);
+  CGFloat capHeight = NICGFloatFloor(image.size.height / 2);
   return [image resizableImageWithCapInsets:UIEdgeInsetsMake(capHeight, capWidth, capHeight, capWidth)];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (id)_cacheKeyForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted {
+- (id)_cacheKeyForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted drawDivider:(BOOL)drawDivider {
   NSInteger flags = ((first ? 0x01 : 0)
                      | (last ? 0x02 : 0)
-                     | (highlighted ? 0x04 : 0));
-  return [NSNumber numberWithInt:flags];
+                     | (highlighted ? 0x04 : 0)
+                     | (drawDivider ? 0x08 : 0));
+  return [NSNumber numberWithInteger:flags];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)_invalidateCache {
   [self.cachedImages removeAllObjects];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark - Public Methods
+#pragma mark - Public
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
   NSInteger numberOfRowsInSection = [tableView.dataSource tableView:tableView numberOfRowsInSection:indexPath.section];
   BOOL isFirst = (0 == indexPath.row);
   BOOL isLast = (indexPath.row == numberOfRowsInSection - 1);
+  BOOL drawDivider = YES;
+  if ([cell conformsToProtocol:@protocol(NIGroupedCellAppearance)]
+      && [cell respondsToSelector:@selector(drawsCellDivider)]) {
+    id<NIGroupedCellAppearance> groupedCell = (id<NIGroupedCellAppearance>)cell;
+    drawDivider = [groupedCell drawsCellDivider];
+  }
   NSInteger backgroundTag = ((isFirst ? NIGroupedCellBackgroundFlagIsFirst : 0)
                              | (isLast ? NIGroupedCellBackgroundFlagIsLast : 0)
-                             | NIGroupedCellBackgroundFlagInitialized);
+                             | NIGroupedCellBackgroundFlagInitialized
+                             | (drawDivider ? 0 : NIGroupedCellBackgroundFlagNoDivider));
   if (cell.backgroundView.tag != backgroundTag) {
     cell.backgroundView = [[UIImageView alloc] initWithImage:[self imageForFirst:isFirst
                                                                             last:isLast
-                                                                     highlighted:NO]];
+                                                                     highlighted:NO
+                                                                     drawDivider:drawDivider]];
     cell.selectedBackgroundView = [[UIImageView alloc] initWithImage:[self imageForFirst:isFirst
                                                                                     last:isLast
-                                                                             highlighted:YES]];
+                                                                             highlighted:YES
+                                                                             drawDivider:drawDivider]];
     cell.backgroundView.tag = backgroundTag;
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)imageForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted {
-  id cacheKey = [self _cacheKeyForFirst:first last:last highlighted:highlighted];
+  return [self imageForFirst:first last:last highlighted:highlighted drawDivider:YES];
+}
+
+- (UIImage *)imageForFirst:(BOOL)first last:(BOOL)last highlighted:(BOOL)highlighted drawDivider:(BOOL)drawDivider {
+  id cacheKey = [self _cacheKeyForFirst:first last:last highlighted:highlighted drawDivider:drawDivider];
   UIImage* image = [self.cachedImages objectForKey:cacheKey];
   if (nil == image) {
-    image = [self _imageForFirst:first last:last highlighted:highlighted];
+    image = [self _imageForFirst:first last:last highlighted:highlighted drawDivider:drawDivider];
     [self.cachedImages setObject:image forKey:cacheKey];
   }
   return image;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setInnerBackgroundColor:(UIColor *)innerBackgroundColor {
   if (_innerBackgroundColor != innerBackgroundColor) {
     _innerBackgroundColor = innerBackgroundColor;
@@ -433,8 +424,6 @@ static const CGSize kCellImageSize = {44, 44};
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setHighlightedInnerGradientColors:(NSMutableArray *)highlightedInnerGradientColors {
   if (_highlightedInnerGradientColors != highlightedInnerGradientColors) {
     _highlightedInnerGradientColors = highlightedInnerGradientColors;
@@ -442,8 +431,6 @@ static const CGSize kCellImageSize = {44, 44};
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setShadowWidth:(CGFloat)shadowWidth {
   if (_shadowWidth != shadowWidth) {
     _shadowWidth = shadowWidth;
@@ -451,8 +438,6 @@ static const CGSize kCellImageSize = {44, 44};
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setShadowColor:(UIColor *)shadowColor {
   if (_shadowColor != shadowColor) {
     _shadowColor = shadowColor;
@@ -460,8 +445,6 @@ static const CGSize kCellImageSize = {44, 44};
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setBorderColor:(UIColor *)borderColor {
   if (_borderColor != borderColor) {
     _borderColor = borderColor;
@@ -469,8 +452,6 @@ static const CGSize kCellImageSize = {44, 44};
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setDividerColor:(UIColor *)dividerColor {
   if (_dividerColor != dividerColor) {
     _dividerColor = dividerColor;

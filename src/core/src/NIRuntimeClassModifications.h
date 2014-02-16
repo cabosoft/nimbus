@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -29,7 +29,7 @@ extern "C" {
  * @defgroup Runtime-Class-Modifications Runtime Class Modifications
  * @{
  *
- *      @attention Please use caution when modifying class implementations at runtime.
+ * @attention Please use caution when modifying class implementations at runtime.
  *                 Apple is prone to rejecting apps for gratuitous use of method swapping.
  *                 In particular, avoid swapping any NSObject methods such as dealloc, init,
  *                 and retain/release on UIKit classes.
@@ -71,6 +71,4 @@ void NISwapClassMethods(Class cls, SEL originalSel, SEL newSel);
 };
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of Runtime Class Modifications //////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////

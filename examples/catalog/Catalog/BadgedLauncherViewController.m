@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,12 +53,11 @@
 //
 
 @interface BadgedLauncherViewController () <NILauncherViewModelDelegate>
-@property (nonatomic, readwrite, retain) NILauncherViewModel* model;
+@property (nonatomic, retain) NILauncherViewModel* model;
 @end
 
 @implementation BadgedLauncherViewController
 
-@synthesize model = _model;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
@@ -98,14 +97,15 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  
+
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+
   self.view.backgroundColor = [UIColor underPageBackgroundColor];
 
   self.launcherView.dataSource = self.model;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 #pragma mark - NILauncherViewModelDelegate

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -18,6 +18,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+
+#import "NIPreprocessorMacros.h"
 
 /**
  * For checking SDK feature availibility.
@@ -101,9 +103,19 @@
 #define NIIOS_5_1     50100
 
 /**
- * Release TBD. Should be sometime between September and October.
+ * Released on September 19, 2012.
  */
 #define NIIOS_6_0     60000
+
+/**
+ * Released on January 28, 2013.
+ */
+#define NIIOS_6_1     60100
+
+/**
+ * Released on September 18, 2013
+ */
+#define NIIOS_7_0     70000
 
 #ifndef kCFCoreFoundationVersionNumber_iPhoneOS_2_0
 #define kCFCoreFoundationVersionNumber_iPhoneOS_2_0 478.23
@@ -146,11 +158,19 @@
 #endif
 
 #ifndef kCFCoreFoundationVersionNumber_iOS_5_0
-#define kCFCoreFoundationVersionNumber_iOS_5_0 675
+#define kCFCoreFoundationVersionNumber_iOS_5_0 675.00
 #endif
 
 #ifndef kCFCoreFoundationVersionNumber_iOS_5_1
-#define kCFCoreFoundationVersionNumber_iOS_5_1 690.1
+#define kCFCoreFoundationVersionNumber_iOS_5_1 690.10
+#endif
+
+#ifndef kCFCoreFoundationVersionNumber_iOS_6_0
+#define kCFCoreFoundationVersionNumber_iOS_6_0 793.00
+#endif
+
+#ifndef kCFCoreFoundationVersionNumber_iOS_6_1
+#define kCFCoreFoundationVersionNumber_iOS_6_1 793.00
 #endif
 
 #if __cplusplus
@@ -160,7 +180,7 @@ extern "C" {
 /**
  * Checks whether the device the app is currently running on is an iPad or not.
  *
- *      @returns YES if the device is an iPad.
+ * @returns YES if the device is an iPad.
  */
 BOOL NIIsPad(void);
     
@@ -174,22 +194,34 @@ BOOL NIIs4Inch();
 
 
 /**
+ * Checks whether the device the app is currently running on is an
+ * iPhone/iPod touch or not.
+ *
+ * @returns YES if the device is an iPhone or iPod touch.
+ */
+BOOL NIIsPhone(void);
+
+/**
+ * Checks whether the device supports tint colors on all UIViews.
+ *
+ * @returns YES if all UIView instances on the device respond to tintColor.
+ */
+BOOL NIIsTintColorGloballySupported(void);
+
+/**
  * Checks whether the device's OS version is at least the given version number.
  *
  * Useful for runtime checks of the device's version number.
  *
- *      @param versionNumber  Any value of kCFCoreFoundationVersionNumber.
+ * @param versionNumber  Any value of kCFCoreFoundationVersionNumber.
  *
- *      @attention Apple recommends using respondsToSelector where possible to check for
+ * @attention Apple recommends using respondsToSelector where possible to check for
  *                 feature support. Use this method as a last resort.
  */
 BOOL NIDeviceOSVersionIsAtLeast(double versionNumber);
 
 /**
- * Fetch the screen's scale in an SDK-agnostic way. This will work on any pre-iOS 4.0 SDK.
- *
- * Pre-iOS 4.0: will always return 1.
- *     iOS 4.0: returns the device's screen scale.
+ * Fetch the screen's scale.
  */
 CGFloat NIScreenScale(void);
 
@@ -199,85 +231,36 @@ CGFloat NIScreenScale(void);
 BOOL NIIsRetina(void);
 
 /**
- * Safely fetch the UIPopoverController class if it is available.
+ * This method is now deprecated. Use [UIPopoverController class] instead.
  *
- * The class is cached to avoid repeated lookups.
- *
- * Uses NSClassFromString to fetch the popover controller class.
- *
- * This class was first introduced in iOS 3.2 April 3, 2010.
- *
- *      @attention If you wish to maintain pre-iOS 3.2 support then you <b>must</b> use this method
- *                 instead of directly referring to UIPopoverController anywhere within your code.
- *                 Failure to do so will cause your app to crash on startup on pre-iOS 3.2 devices.
+ * MAINTENANCE: Remove by Feb 28, 2014.
  */
-Class NIUIPopoverControllerClass(void);
+Class NIUIPopoverControllerClass(void) __NI_DEPRECATED_METHOD;
 
 /**
- * Safely fetch the UITapGestureRecognizer class if it is available.
+ * This method is now deprecated. Use [UITapGestureRecognizer class] instead.
  *
- * The class is cached to avoid repeated lookups.
- *
- * Uses NSClassFromString to fetch the tap gesture recognizer class.
- *
- * This class was first introduced in iOS 3.2 April 3, 2010.
- *
- *      @attention If you wish to maintain pre-iOS 3.2 support then you <b>must</b> use this method
- *                 instead of directly referring to UIPopoverController anywhere within your code.
- *                 Failure to do so will cause your app to crash on startup on pre-iOS 3.2 devices.
+ * MAINTENANCE: Remove by Feb 28, 2014.
  */
-Class NIUITapGestureRecognizerClass(void);
+Class NIUITapGestureRecognizerClass(void) __NI_DEPRECATED_METHOD;
 
 #if __cplusplus
 } // extern "C"
 #endif
 
-
 #pragma mark Building with Old SDKs
 
-// Define classes that were introduced in iOS 3.2.
-#if __IPHONE_OS_VERSION_MAX_ALLOWED < NIIOS_3_2
+// Define methods that were introduced in iOS 7.0.
+#if __IPHONE_OS_VERSION_MAX_ALLOWED < NIIOS_7_0
 
-@class UIPopoverController;
-@class UITapGestureRecognizer;
+@interface UIViewController (Nimbus7SDKAvailability)
 
-#endif
-
-
-// Define methods that were introduced in iOS 4.0.
-#if __IPHONE_OS_VERSION_MAX_ALLOWED < NIIOS_4_0
-
-@interface UIImage (Nimbus4SDKAvailability)
-
-+ (UIImage *)imageWithCGImage:(CGImageRef)imageRef scale:(CGFloat)scale orientation:(UIImageOrientation)orientation;
-
-- (CGFloat)scale;
-
-@end
-
-@interface UIScreen (Nimbus4SDKAvailability)
-
-- (CGFloat)scale;
+@property (nonatomic, assign) UIRectEdge edgesForExtendedLayout;
+- (void)setNeedsStatusBarAppearanceUpdate;
 
 @end
 
 #endif
 
 
-// Define methods that were introduced in iOS 6.0.
-#if __IPHONE_OS_VERSION_MAX_ALLOWED < NIIOS_6_0
-
-@interface UIImage (Nimbus6SDKAvailability)
-
-typedef NSInteger UIImageResizingMode;
-extern const UIImageResizingMode UIImageResizingModeStretch;
-- (UIImage *)resizableImageWithCapInsets:(UIEdgeInsets)capInsets resizingMode:(UIImageResizingMode)resizingMode;
-
-@end
-
-#endif
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of SDK Availability /////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////

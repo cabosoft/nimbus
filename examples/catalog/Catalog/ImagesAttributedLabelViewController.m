@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,9 +36,6 @@
 // QuartzCore.framework
 //
 
-@interface ImagesAttributedLabelViewController ()
-@end
-
 @implementation ImagesAttributedLabelViewController
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -52,13 +49,19 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+  self.view.backgroundColor = [UIColor whiteColor];
+
   NIAttributedLabel* label = [[NIAttributedLabel alloc] initWithFrame:CGRectZero];
 
   // When we assign the text we do not include any markup for the images.
   label.text = @"This is Nimbus:He's a red panda.\nThis is a star:";
 
   label.autoresizingMask = UIViewAutoresizingFlexibleDimensions;
-  label.lineBreakMode = UILineBreakModeWordWrap;
+  label.lineBreakMode = NSLineBreakByWordWrapping;
   label.numberOfLines = 0;
   label.font = [UIFont systemFontOfSize:20];
   label.textColor = [UIColor blackColor];
@@ -90,10 +93,6 @@
              margins:UIEdgeInsetsMake(5, 5, 5, 5)];
 
   [self.view addSubview:label];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 @end

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 9, 2011 - Copyright 2009-2011 Facebook
 //
@@ -27,19 +27,12 @@
 
 @end
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIFoundationMethodsTests
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark CGRect Methods
+#pragma mark - CGRect Methods
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testCGRectMethods {
   CGRect rect = CGRectMake(0, 0, 100, 100);
 
@@ -52,8 +45,6 @@
                @"Shifting a rect should only modify the left and top edges.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testCGRectCenterWithin {
   UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
   UIView *subview = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 10)];
@@ -64,14 +55,9 @@
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NSRange Methods
+#pragma mark - NSRange Methods
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testNSRangeMethods {
   CFRange cfRange = CFRangeMake(0, 10);
   NSRange nsRange = NIMakeNSRangeFromCFRange(cfRange);
@@ -83,14 +69,9 @@
                  @"The two lengths should be equal.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NSData Methods
+#pragma mark - NSData Methods
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testNSDataHashing {
   const char* bytes = "nimbus";
   NSData* data = [[NSData alloc] initWithBytes:bytes length:strlen(bytes)];
@@ -101,14 +82,9 @@
                @"SHA1 hashes don't match.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NSString Methods
+#pragma mark - NSString Methods
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testNIIsStringWithWhitespaceAndNewlines {
   STAssertTrue(NIIsStringWithWhitespaceAndNewlines(@""), @"Empty string should be whitespace and newlines.");
   STAssertTrue(NIIsStringWithWhitespaceAndNewlines(@" "), @"Space should be whitespace and newlines.");
@@ -131,29 +107,21 @@
   STAssertTrue(!NIIsStringWithWhitespaceAndNewlines(@" \r\n\ta\r\n "), @"Text should not be whitespace.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark General Purpose Methods
+#pragma mark - General Purpose Methods
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)testboundf {
-  STAssertEquals(boundf(1, 0, 2), 1.f, @"Should be equal.");
-  STAssertEquals(boundf(20, 0, 2), 2.f, @"Should be equal.");
-  STAssertEquals(boundf(-500, 0, 2), 0.f, @"Should be equal.");
-  STAssertEquals(boundf(5234, 0, -500), 0.f, @"Should be equal.");
+- (void)testNIBoundf {
+  STAssertEquals(NIBoundf(1, 0, 2), 1.f, @"Should be equal.");
+  STAssertEquals(NIBoundf(20, 0, 2), 2.f, @"Should be equal.");
+  STAssertEquals(NIBoundf(-500, 0, 2), 0.f, @"Should be equal.");
+  STAssertEquals(NIBoundf(5234, 0, -500), 0.f, @"Should be equal.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)testboundi {
-  STAssertEquals(boundi(1, 0, 2), 1, @"Should be equal.");
-  STAssertEquals(boundi(20, 0, 2), 2, @"Should be equal.");
-  STAssertEquals(boundi(-500, 0, 2), 0, @"Should be equal.");
-  STAssertEquals(boundi(5234, 0, -500), 0, @"Should be equal.");
+- (void)testNIBoundi {
+  STAssertEquals(NIBoundi(1, 0, 2), 1, @"Should be equal.");
+  STAssertEquals(NIBoundi(20, 0, 2), 2, @"Should be equal.");
+  STAssertEquals(NIBoundi(-500, 0, 2), 0, @"Should be equal.");
+  STAssertEquals(NIBoundi(5234, 0, -500), 0, @"Should be equal.");
 }
-
 
 @end

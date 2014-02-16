@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -79,12 +79,12 @@
  *  NIMaxLogLevel = NILOGLEVEL_INFO;
  * @endcode
  *
- *      @ingroup NimbusCore
- *      @defgroup Debugging-Tools Debugging Tools
- *      @{
+ * @ingroup NimbusCore
+ * @defgroup Debugging-Tools Debugging Tools
+ * @{
  */
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(NI_DEBUG)
 
 /**
  * Assertions that only fire when DEBUG is defined.
@@ -99,9 +99,9 @@ extern "C" {
 #endif
 
 int NIIsInDebugger(void);
-    
+
 #if defined __cplusplus
-};
+}
 #endif
 
 #if TARGET_IPHONE_SIMULATOR
@@ -118,7 +118,7 @@ if (NIDebugAssertionsShouldBreak && NIIsInDebugger()) { raise(SIGTRAP); } } \
 
 #else
 #define NIDASSERT(xx) ((void)0)
-#endif // #ifdef DEBUG
+#endif // #if defined(DEBUG) || defined(NI_DEBUG)
 
 
 #define NILOGLEVEL_INFO     5
@@ -150,18 +150,18 @@ extern BOOL NIDebugAssertionsShouldBreak;
  * This log method will always write to the log, regardless of log levels. It is used by all
  * of the other logging methods in Nimbus' debugging library.
  */
-#ifdef DEBUG
+#if defined(DEBUG) || defined(NI_DEBUG)
 #define NIDPRINT(xx, ...)  NSLog(@"%s(%d): " xx, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
 #define NIDPRINT(xx, ...)  ((void)0)
-#endif // #ifdef DEBUG
+#endif // #if defined(DEBUG) || defined(NI_DEBUG)
 
 /**
  * Write the containing method's name to the log using NIDPRINT.
  */
 #define NIDPRINTMETHODNAME() NIDPRINT(@"%s", __PRETTY_FUNCTION__)
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(NI_DEBUG)
 /**
  * Only writes to the log if condition is satisified.
  *
@@ -172,7 +172,7 @@ extern BOOL NIDebugAssertionsShouldBreak;
 } ((void)0)
 #else
 #define NIDCONDITIONLOG(condition, xx, ...) ((void)0)
-#endif // #ifdef DEBUG
+#endif // #if defined(DEBUG) || defined(NI_DEBUG)
 
 
 /**
@@ -191,7 +191,4 @@ xx, ##__VA_ARGS__)
  */
 #define NIDINFO(xx, ...)  NIDCONDITIONLOG((NILOGLEVEL_INFO <= NIMaxLogLevel), xx, ##__VA_ARGS__)
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of Debugging Tools //////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////

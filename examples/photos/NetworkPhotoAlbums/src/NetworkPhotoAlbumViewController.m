@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 Jeff Verkoeyen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,26 +24,17 @@
 
 #ifdef DEBUG
 @interface NetworkPhotoAlbumViewController()
-@property (nonatomic, readwrite, retain) NIOverviewMemoryCachePageView* highQualityPage;
-@property (nonatomic, readwrite, retain) NIOverviewMemoryCachePageView* thumbnailPage;
+@property (nonatomic, retain) NIOverviewMemoryCachePageView* highQualityPage;
+@property (nonatomic, retain) NIOverviewMemoryCachePageView* thumbnailPage;
 @end
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NetworkPhotoAlbumViewController
 
-@synthesize highQualityImageCache = _highQualityImageCache;
-@synthesize thumbnailImageCache = _thumbnailImageCache;
-@synthesize queue = _queue;
 #ifdef DEBUG
-@synthesize highQualityPage = _highQualityPage;
-@synthesize thumbnailPage = _thumbnailPage;
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)shutdown_NetworkPhotoAlbumViewController {
   [_queue cancelAllOperations];
 
@@ -53,20 +44,14 @@
 #endif
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
   [self shutdown_NetworkPhotoAlbumViewController];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSString *)cacheKeyForPhotoIndex:(NSInteger)photoIndex {
   return [NSString stringWithFormat:@"%d", photoIndex];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)identifierWithPhotoSize:(NIPhotoScrollViewPhotoSize)photoSize
                           photoIndex:(NSInteger)photoIndex {
   BOOL isThumbnail = (NIPhotoScrollViewPhotoSizeThumbnail == photoSize);
@@ -74,14 +59,10 @@
   return identifier;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)identifierKeyFromIdentifier:(NSInteger)identifier {
   return [NSNumber numberWithInt:identifier];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)requestImageFromSource:(NSString *)source
                      photoSize:(NIPhotoScrollViewPhotoSize)photoSize
                     photoIndex:(NSInteger)photoIndex {
@@ -100,38 +81,35 @@
   
   NSString* photoIndexKey = [self cacheKeyForPhotoIndex:photoIndex];
 
-  AFImageRequestOperation* readOp =
-  [AFImageRequestOperation imageRequestOperationWithRequest:request
-                                       imageProcessingBlock:nil success:
-   ^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
-     // Store the image in the correct image cache.
-     if (isThumbnail) {
-       [_thumbnailImageCache storeObject: image
-                                withName: photoIndexKey];
-       
-     } else {
-       [_highQualityImageCache storeObject: image
-                                  withName: photoIndexKey];
-     }
-     
-     // If you decide to move this code around then ensure that this method is called from
-     // the main thread. Calling it from any other thread will have undefined results.
-     [self.photoAlbumView didLoadPhoto: image
-                               atIndex: photoIndex
-                             photoSize: photoSize];
-     
-     if (isThumbnail) {
-       [self.photoScrubberView didLoadThumbnail:image atIndex:photoIndex];
-     }
-     
-     [_activeRequests removeObject:identifierKey];
-     
-   } failure:
-   ^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
-     
-   }];
+  AFHTTPRequestOperation* readOp = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+  AFImageResponseSerializer* responseSerializer = [AFImageResponseSerializer serializer];
+  responseSerializer.imageScale = 1;
+  readOp.responseSerializer = responseSerializer;
 
-  readOp.imageScale = 1;
+  [readOp setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, UIImage* image) {
+    // Store the image in the correct image cache.
+    if (isThumbnail) {
+      [_thumbnailImageCache storeObject: image
+                               withName: photoIndexKey];
+
+    } else {
+      [_highQualityImageCache storeObject: image
+                                 withName: photoIndexKey];
+    }
+
+    // If you decide to move this code around then ensure that this method is called from
+    // the main thread. Calling it from any other thread will have undefined results.
+    [self.photoAlbumView didLoadPhoto: image
+                              atIndex: photoIndex
+                            photoSize: photoSize];
+
+    if (isThumbnail) {
+      [self.photoScrubberView didLoadThumbnail:image atIndex:photoIndex];
+    }
+
+    [_activeRequests removeObject:identifierKey];
+
+  } failure:nil];
 
   // Set the operation priority level.
 
@@ -144,18 +122,13 @@
   }
 
   // Start the operation.
-
+  [_activeRequests addObject:identifierKey];
   [_queue addOperation:readOp];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark UIViewController
+#pragma mark - UIViewController
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadView {
   [super loadView];
 
@@ -165,7 +138,7 @@
   _thumbnailImageCache = [[NIImageMemoryCache alloc] init];
 
   [_highQualityImageCache setMaxNumberOfPixels:1024L*1024L*10L];
-  [_highQualityImageCache setMaxNumberOfPixelsUnderStress:1024L*1024L*3L];
+  [_thumbnailImageCache setMaxNumberOfPixelsUnderStress:1024L*1024L*3L];
 
   _queue = [[NSOperationQueue alloc] init];
   [_queue setMaxConcurrentOperationCount:5];
@@ -182,13 +155,10 @@
 #endif
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewDidUnload {
   [self shutdown_NetworkPhotoAlbumViewController];
 
   [super viewDidUnload];
 }
-
 
 @end

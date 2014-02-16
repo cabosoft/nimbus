@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 
 @interface NITableViewModel()
 
-@property (nonatomic, NI_STRONG) NSArray* sections; // Array of NITableViewModelSection
-@property (nonatomic, NI_STRONG) NSArray* sectionIndexTitles;
-@property (nonatomic, NI_STRONG) NSDictionary* sectionPrefixToSectionIndex;
+@property (nonatomic, strong) NSArray* sections; // Array of NITableViewModelSection
+@property (nonatomic, strong) NSArray* sectionIndexTitles;
+@property (nonatomic, strong) NSDictionary* sectionPrefixToSectionIndex;
 
 - (void)_resetCompiledData;
 - (void)_compileDataWithListArray:(NSArray *)listArray;
@@ -35,6 +35,6 @@
 
 @property (nonatomic, copy) NSString* headerTitle;
 @property (nonatomic, copy) NSString* footerTitle;
-@property (nonatomic, NI_STRONG) NSArray* rows;
+@property (nonatomic, strong) NSArray* rows;
 
 @end

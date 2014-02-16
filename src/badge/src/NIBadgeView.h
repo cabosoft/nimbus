@@ -1,5 +1,6 @@
 //
-// Copyright 2011 Roger Chapman
+// Copyright 2011-2014 NimbusKit
+// Originally created by Roger Chapman
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +17,6 @@
 
 #import <UIKit/UIKit.h>
 
-#import "NIPreprocessorMacros.h" /* for NI_WEAK */
-
 /**
  * A view that mimics the iOS notification badge style.
  *
@@ -26,22 +25,27 @@
  * views to represent notification badges, so you should do your best not to attach additional
  * meaning to the red badge.
  *
- *  @image html badge.png "A default NIBadgeView"
+ * On devices running operating systems that support the tintColor property on UIViews, these
+ * badges will use the tintColor by default. This behavior may be overwritten by assigning a tint
+ * color explicitly.
  *
- *      @ingroup NimbusBadge
+ *  @image html badge.png "A default NIBadgeView"
+ *  @image html badgetinted.png "A NIBadgeView on tintColor-supporting devices"
+ *
+ * @ingroup NimbusBadge
  */
 @interface NIBadgeView : UIView
 
 // Text attributes
-@property (nonatomic, readwrite, copy) NSString* text;
-@property (nonatomic, readwrite, NI_STRONG) UIFont* font;
-@property (nonatomic, readwrite, NI_STRONG) UIColor* textColor;
+@property (nonatomic, copy) NSString* text;
+@property (nonatomic, strong) UIFont* font;
+@property (nonatomic, strong) UIColor* textColor;
 
 // Badge attributes
-@property (nonatomic, readwrite, NI_STRONG) UIColor* tintColor;
-@property (nonatomic, readwrite, NI_STRONG) UIColor* shadowColor;
-@property (nonatomic, readwrite, assign) CGSize shadowOffset;
-@property (nonatomic, readwrite, assign) CGFloat shadowBlur;
+@property (nonatomic, strong) UIColor* tintColor;
+@property (nonatomic, strong) UIColor* shadowColor;
+@property (nonatomic, assign) CGSize shadowOffset;
+@property (nonatomic, assign) CGFloat shadowBlur;
 
 @end
 
@@ -53,16 +57,19 @@
  * As with a UILabel you should call sizeToFit after setting the badgeView properties so that it
  * will update its frame to fit the contents.
  *
- *      @fn NIBadgeView::text
+ * @fn NIBadgeView::text
  */
 
 /**
  * The font of the text within the badge.
  *
- * The default font is [UIFont boldSystemFontOfSize:17].
+ * The default font is:
  *
- *      @sa text
- *      @fn NIBadgeView::font
+ *   iOS 6: [UIFont boldSystemFontOfSize:17]
+ *   iOS 7: [UIFont systemFontOfSize:16]
+ *
+ * @sa text
+ * @fn NIBadgeView::font
  */
 
 /**
@@ -70,7 +77,7 @@
  *
  * The default color is [UIColor whiteColor].
  *
- *      @fn NIBadgeView::textColor
+ * @fn NIBadgeView::textColor
  */
 
 /** @name Accessing the Badge Attributes */
@@ -80,9 +87,15 @@
  *
  * This is the color drawn within the badge's borders.
  *
- * The default color is [UIColor redColor].
+ * The default color is
  *
- *      @fn NIBadgeView::tintColor
+ *   iOS 6: [UIColor redColor].
+ *   iOS 7: self.tintColor
+ *
+ * On devices that support global tintColor (iOS 7) the global tint color is used unless a tint
+ * color has been explicitly assigned to this badge view, in which case the assigned tint color will be used.
+ *
+ * @fn NIBadgeView::tintColor
  */
 
 /**
@@ -90,11 +103,17 @@
  *
  * This is the shadow drawn beneath the badge's outline.
  *
- * The default color is [UIColor colorWithWhite:0 alpha:0.5].
+ * The default color is
  *
- *      @sa shadowOffset
- *      @sa shadowBlur
- *      @fn NIBadgeView::shadowColor
+ *   iOS 6: [UIColor colorWithWhite:0 alpha:0.5].
+ *   iOS 7: nil
+ *
+ * On devices that support global tintColor (iOS 7) it is possible, though not encouraged, to use
+ * a shadow on badges.
+ *
+ * @sa shadowOffset
+ * @sa shadowBlur
+ * @fn NIBadgeView::shadowColor
  */
 
 /**
@@ -104,9 +123,9 @@
  *
  * The default value is CGSizeMake(0, 3.f).
  *
- *      @sa shadowColor
- *      @sa shadowBlur
- *      @fn NIBadgeView::shadowOffset
+ * @sa shadowColor
+ * @sa shadowBlur
+ * @fn NIBadgeView::shadowOffset
  */
 
 /**
@@ -116,7 +135,7 @@
  *
  * The default value is 3.
  *
- *      @sa shadowOffset
- *      @sa shadowColor
- *      @fn NIBadgeView::shadowBlur
+ * @sa shadowOffset
+ * @sa shadowColor
+ * @fn NIBadgeView::shadowBlur
  */

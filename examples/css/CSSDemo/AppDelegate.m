@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 Jeff Verkoeyen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,27 +20,18 @@
 #import "RootViewController.h"
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation AppDelegate
 
-@synthesize window = _window;
-@synthesize stylesheetCache = _stylesheetCache;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark Application lifecycle
+#pragma mark - Application lifecycle
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)              application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 
-  NSString* pathPrefix = NIPathForBundleResource(nil, @"css");
+  NSString* pathPrefix = NIPathForBundleResource(nil, @"");
   NSString* host = @"http://localhost:8888/";
   
   _stylesheetCache = [[NIStylesheetCache alloc] initWithPathPrefix:pathPrefix];
@@ -58,6 +49,5 @@
   
   return YES;
 }
-
 
 @end

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@
  * @{
  *
  * View recycling is an important aspect of iOS memory management and performance when building
- * scroll view. When you use UITableView you use view recycling via the table cell dequeue
- * mechanism. NIViewRecycler implements this recycling functionality, allowing you to implement
- * recycling mechanisms in your own views and controllers.
+ * scroll views. UITableView uses view recycling via the table cell dequeue mechanism.
+ * NIViewRecycler implements this recycling functionality, allowing you to implement recycling
+ * mechanisms in your own views and controllers.
  *
  *
  * <h2>Example Use</h2>
@@ -66,16 +66,21 @@ if (nil == view) {
 /**
  * An object for efficiently reusing views by recycling and dequeuing them from a pool of views.
  *
- * This sort of object is what UITableView and NIPagingScrollView use to recycle their views.
+ * This sort of object is likely what UITableView and NIPagingScrollView use to recycle their views.
  */
 @interface NIViewRecycler : NSObject
+
 - (UIView<NIRecyclableView> *)dequeueReusableViewWithIdentifier:(NSString *)reuseIdentifier;
+
 - (void)recycleView:(UIView<NIRecyclableView> *)view;
+
 - (void)removeAllViews;
+
 @end
 
 /**
- * The protocol for a recyclable view.
+ * The NIRecyclableView protocol defines a set of optional methods that a view may implement to
+ * handle being added to a NIViewRecycler.
  */
 @protocol NIRecyclableView <NSObject>
 
@@ -88,7 +93,7 @@ if (nil == view) {
  *
  * If the reuseIdentifier is nil then the class name will be used.
  */
-@property (nonatomic, readwrite, copy) NSString* reuseIdentifier;
+@property (nonatomic, copy) NSString* reuseIdentifier;
 
 /**
  * Called immediately after the view has been dequeued from the recycled view pool.
@@ -98,16 +103,22 @@ if (nil == view) {
 @end
 
 /**
- * A simple view implementation of the NIRecyclableView protocol.
+ * A simple implementation of the NIRecyclableView protocol as a UIView.
  *
- * This view class can easily be used with a NIViewRecycler.
+ * This class can be used as a base class for building recyclable views if specific reuse
+ * identifiers are necessary, e.g. when the same class might have different implementations
+ * depending on the reuse identifier.
+ *
+ * Assuming functionality is consistent for a given class it is simpler not to have a
+ * reuseIdentifier, making the view recycler use the class name as the reuseIdentifier. In this case
+ * subclassing this class is overkill.
  */
 @interface NIRecyclableView : UIView <NIRecyclableView>
 
 // Designated initializer.
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 
-@property (nonatomic, readwrite, copy) NSString* reuseIdentifier;
+@property (nonatomic, copy) NSString* reuseIdentifier;
 
 @end
 
@@ -116,22 +127,22 @@ if (nil == view) {
 /**
  * Dequeues a reusable view from the recycled views pool if one exists, otherwise returns nil.
  *
- *      @fn NIViewRecycler::dequeueReusableViewWithIdentifier:
- *      @param reuseIdentifier  Often the name of the class of view you wish to fetch.
+ * @fn NIViewRecycler::dequeueReusableViewWithIdentifier:
+ * @param reuseIdentifier  Often the name of the class of view you wish to fetch.
  */
 
 /**
  * Adds a given view to the recycled views pool.
  *
- *      @fn NIViewRecycler::recycleView:
- *      @param view   The view to recycle. The reuse identifier will be retrieved from the view
+ * @fn NIViewRecycler::recycleView:
+ * @param view   The view to recycle. The reuse identifier will be retrieved from the view
  *                    via the NIRecyclableView protocol.
  */
 
 /**
  * Removes all of the views from the recycled views pool.
  *
- *      @fn NIViewRecycler::removeAllViews
+ * @fn NIViewRecycler::removeAllViews
  */
 
 /**
@@ -139,8 +150,8 @@ if (nil == view) {
  *
  * This is the designated initializer.
  *
- *      @fn NIRecyclableView::initWithReuseIdentifier:
- *      @param reuseIdentifier  The identifier that will be used to group this view in the view
+ * @fn NIRecyclableView::initWithReuseIdentifier:
+ * @param reuseIdentifier  The identifier that will be used to group this view in the view
  *                              recycler.
  */
 
@@ -149,5 +160,5 @@ if (nil == view) {
  *
  * Used by NIViewRecycler to pool this view into a group of similar recycled views.
  *
- *      @fn NIRecyclableView::reuseIdentifier
+ * @fn NIRecyclableView::reuseIdentifier
  */

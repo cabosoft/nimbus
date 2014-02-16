@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -22,14 +22,11 @@
 #error "Nimbus requires ARC support."
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSString* NIPathForBundleResource(NSBundle* bundle, NSString* relativePath) {
   NSString* resourcePath = [(nil == bundle ? [NSBundle mainBundle] : bundle) resourcePath];
   return [resourcePath stringByAppendingPathComponent:relativePath];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSString* NIPathForDocumentsResource(NSString* relativePath) {
   static NSString* documentsPath = nil;
   if (nil == documentsPath) {
@@ -41,21 +38,17 @@ NSString* NIPathForDocumentsResource(NSString* relativePath) {
   return [documentsPath stringByAppendingPathComponent:relativePath];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSString* NIPathForLibraryResource(NSString* relativePath) {
-    static NSString* libraryPath = nil;
-    if (nil == libraryPath) {
-        NSArray* dirs = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-                                                            NSUserDomainMask,
-                                                            YES);
-        libraryPath = [dirs objectAtIndex:0];
-    }
-    return [libraryPath stringByAppendingPathComponent:relativePath];
+  static NSString* libraryPath = nil;
+  if (nil == libraryPath) {
+    NSArray* dirs = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+                                                        NSUserDomainMask,
+                                                        YES);
+    libraryPath = [dirs objectAtIndex:0];
+  }
+  return [libraryPath stringByAppendingPathComponent:relativePath];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSString* NIPathForCachesResource(NSString* relativePath) {
   static NSString* cachesPath = nil;
   if (nil == cachesPath) {

@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 
 @interface NIMutableTableViewModel (Private)
 
-@property (nonatomic, NI_STRONG) NSMutableArray* sections; // Array of NITableViewModelSection
-@property (nonatomic, NI_STRONG) NSMutableArray* sectionIndexTitles;
-@property (nonatomic, NI_STRONG) NSMutableDictionary* sectionPrefixToSectionIndex;
+@property (nonatomic, strong) NSMutableArray* sections; // Array of NITableViewModelSection
+@property (nonatomic, strong) NSMutableArray* sectionIndexTitles;
+@property (nonatomic, strong) NSMutableDictionary* sectionPrefixToSectionIndex;
 
 @end
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 9, 2011 - Copyright 2009-2011 Facebook
 //
@@ -22,19 +22,14 @@
 #error "Nimbus requires ARC support."
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSMutableArray* NICreateNonRetainingMutableArray(void) {
   return (__bridge_transfer NSMutableArray *)CFArrayCreateMutable(nil, 0, nil);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSMutableDictionary* NICreateNonRetainingMutableDictionary(void) {
   return (__bridge_transfer NSMutableDictionary *)CFDictionaryCreateMutable(nil, 0, nil, nil);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 NSMutableSet* NICreateNonRetainingMutableSet(void) {
   return (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
 }

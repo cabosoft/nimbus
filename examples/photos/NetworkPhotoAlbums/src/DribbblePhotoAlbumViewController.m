@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 Jeff Verkoeyen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +18,9 @@
 #import "AFNetworking.h"
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation DribbblePhotoAlbumViewController
 
-@synthesize apiPath = _apiPath;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWith:(id)object {
   if ((self = [self initWithNibName:nil bundle:nil])) {
     self.apiPath = object;
@@ -33,7 +28,6 @@
   return self;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadThumbnails {
   for (NSInteger ix = 0; ix < [_photoInformation count]; ++ix) {
     NSDictionary* photo = [_photoInformation objectAtIndex:ix];
@@ -50,9 +44,8 @@
   }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void (^)(NSURLRequest *request, NSHTTPURLResponse *response, id JSON))blockForAlbumProcessing {
-  return ^(NSURLRequest *request, NSHTTPURLResponse *response, id object) {
+- (void (^)(AFHTTPRequestOperation *operation, id JSON))blockForAlbumProcessing {
+  return ^(AFHTTPRequestOperation *operation, id object) {
     NSArray* data = [object objectForKey:@"shots"];
     
     NSMutableArray* photoInformation = [NSMutableArray arrayWithCapacity:[data count]];
@@ -87,7 +80,6 @@
   };
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadAlbumInformation {
   NSString* albumURLPath = [@"http://api.dribbble.com" stringByAppendingString:self.apiPath];
 
@@ -96,27 +88,16 @@
   // operations and pruning on the results.
   NSURL* url = [NSURL URLWithString:albumURLPath];
   NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
-  
-  AFJSONRequestOperation* albumRequest =
-  [AFJSONRequestOperation JSONRequestOperationWithRequest:request
-                                                  success:[self blockForAlbumProcessing]
-                                                  failure:
-   ^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-     
-   }];
 
-
+  AFHTTPRequestOperation* albumRequest = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+  albumRequest.responseSerializer = [AFJSONResponseSerializer serializer];
+  [albumRequest setCompletionBlockWithSuccess:[self blockForAlbumProcessing] failure:nil];
   [self.queue addOperation:albumRequest];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark UIViewController
+#pragma mark - UIViewController
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadView {
   [super loadView];
 
@@ -133,28 +114,19 @@
   [self loadAlbumInformation];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewDidUnload {
   _photoInformation = nil;
 
   [super viewDidUnload];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NIPhotoScrubberViewDataSource
+#pragma mark - NIPhotoScrubberViewDataSource
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)numberOfPhotosInScrubberView:(NIPhotoScrubberView *)photoScrubberView {
   return [_photoInformation count];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)photoScrubberView: (NIPhotoScrubberView *)photoScrubberView
               thumbnailAtIndex: (NSInteger)thumbnailIndex {
   NSString* photoIndexKey = [self cacheKeyForPhotoIndex:thumbnailIndex];
@@ -172,20 +144,13 @@
   return image;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NIPhotoAlbumScrollViewDataSource
+#pragma mark - NIPhotoAlbumScrollViewDataSource
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)numberOfPagesInPagingScrollView:(NIPhotoAlbumScrollView *)photoScrollView {
   return [_photoInformation count];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)photoAlbumScrollView: (NIPhotoAlbumScrollView *)photoAlbumScrollView
                      photoAtIndex: (NSInteger)photoIndex
                         photoSize: (NIPhotoScrollViewPhotoSize *)photoSize
@@ -230,18 +195,13 @@
   return image;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)photoAlbumScrollView: (NIPhotoAlbumScrollView *)photoAlbumScrollView
      stopLoadingPhotoAtIndex: (NSInteger)photoIndex {
   // TODO: Figure out how to implement this with AFNetworking.
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id<NIPagingScrollViewPage>)pagingScrollView:(NIPagingScrollView *)pagingScrollView pageViewForIndex:(NSInteger)pageIndex {
   return [self.photoAlbumView pagingScrollView:pagingScrollView pageViewForIndex:pageIndex];
 }
-
 
 @end

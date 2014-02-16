@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,22 +26,19 @@
 
 NI_FIX_CATEGORY_BUG(UISearchBar_NIStyleable)
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation UISearchBar (NIStyleable)
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)applySearchBarStyleWithRuleSet:(NICSSRuleset *)ruleSet {
+- (void)applySearchBarStyleWithRuleSet:(NICSSRuleset *)ruleSet inDOM:(NIDOM*) dom {
   if ([ruleSet hasTintColor]) { self.tintColor = ruleSet.tintColor; }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)applyStyleWithRuleSet:(NICSSRuleset *)ruleSet {
-  [self applyViewStyleWithRuleSet:ruleSet];
-  [self applySearchBarStyleWithRuleSet:ruleSet];
+-(void)applyViewStyleWithRuleSet:(NICSSRuleset *)ruleSet inDOM:(NIDOM *)dom {
+    [self applyViewStyleWithRuleSet:ruleSet inDOM:dom];
+    [self applySearchBarStyleWithRuleSet:ruleSet inDOM:dom];
 }
 
+- (void)applyStyleWithRuleSet:(NICSSRuleset *)ruleSet {
+}
 
 @end

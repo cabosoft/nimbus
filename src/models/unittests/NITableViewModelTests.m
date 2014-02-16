@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,13 +28,9 @@
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NITableViewModelTests
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testEmptyTableViewModel {
   NITableViewModel* model = [[NITableViewModel alloc] init];
 
@@ -63,8 +59,6 @@
   STAssertEquals([model numberOfSectionsInTableView:nil], 0, @"There should not be any sections.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testInvalidAccess {
   NITableViewModel* model = [[NITableViewModel alloc] init];
 
@@ -78,8 +72,6 @@
   STAssertNil([model tableView:nil titleForFooterInSection:-1], @"There should not be a footer title.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testEditing {
   NITableViewModel* model = [[NITableViewModel alloc] init];
 
@@ -89,8 +81,6 @@
                 @"Should not be able to edit anything.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testListTableViewModel {
   NSArray* contents = [NSArray arrayWithObjects:
                        @"This is a string",
@@ -105,8 +95,6 @@
   STAssertNil([model tableView:nil titleForHeaderInSection:0], @"There should be no section title.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testListTableViewModel_objectAtIndexPath {
   id object1 = [NSDictionary dictionaryWithObject:@"Row 1" forKey:@"title"];
   id object2 = [NSArray array];
@@ -132,8 +120,28 @@
   NIDebugAssertionsShouldBreak = YES;
 }
 
+- (void)testListTableViewModel_indexPathOfObject {
+  id object1 = [NSDictionary dictionaryWithObject:@"Row 1" forKey:@"title"];
+  id object2 = [NSArray array];
+  id object3 = [NSSet set];
+  NSArray* contents = [NSArray arrayWithObjects:
+                       object1,
+                       object2,
+                       object3,
+                       nil];
+  NITableViewModel* model = [[NITableViewModel alloc] initWithListArray:contents delegate:nil];
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+  STAssertEqualObjects([model indexPathForObject:object1], [NSIndexPath indexPathForRow:0 inSection:0], @"Object not found at expected index path.");
+  STAssertEqualObjects([model indexPathForObject:object2], [NSIndexPath indexPathForRow:1 inSection:0], @"Object not found at expected index path.");
+  STAssertEqualObjects([model indexPathForObject:object3], [NSIndexPath indexPathForRow:2 inSection:0], @"Object not found at expected index path.");
+
+  STAssertNil([model indexPathForObject:nil], @"Should be nil.");
+
+  NIDebugAssertionsShouldBreak = NO;
+  STAssertNil([model indexPathForObject:@"Random string"], @"Should be nil.");
+  NIDebugAssertionsShouldBreak = YES;
+}
+
 - (void)testSectionedTableViewModel {
   NSArray* contents = [NSArray arrayWithObjects:
                        @"Section 1",
@@ -155,8 +163,6 @@
   STAssertEquals([model numberOfSectionsInTableView:nil], 5, @"There should be 5 sections.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testSectionedTableViewModelWithFooters {
   NSArray* contents = [NSArray arrayWithObjects:
                        @"Section 1",
@@ -191,8 +197,6 @@
   STAssertNil([model tableView:nil titleForFooterInSection:6], @"There should not be a title.");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)testDynamicSectionedIndex {
   NSArray* contents = [NSArray arrayWithObjects:
                        @"A",

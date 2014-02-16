@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,15 +27,10 @@
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NICellFactory
 
-@synthesize objectToCellMap = _objectToCellMap;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)init {
   if ((self = [super init])) {
     _objectToCellMap = [[NSMutableDictionary alloc] init];
@@ -43,14 +38,17 @@
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (UITableViewCell *)cellWithClass:(Class)cellClass
                          tableView:(UITableView *)tableView
                             object:(id)object {
   UITableViewCell* cell = nil;
 
   NSString* identifier = NSStringFromClass(cellClass);
+
+  if ([cellClass respondsToSelector:@selector(shouldAppendObjectClassToReuseIdentifier)]
+      && [cellClass shouldAppendObjectClassToReuseIdentifier]) {
+    identifier = [identifier stringByAppendingFormat:@".%@", NSStringFromClass([object class])];
+  }
 
   cell = [tableView dequeueReusableCellWithIdentifier:identifier];
 
@@ -73,30 +71,52 @@
   return cell;
 }
 
++ (UITableViewCell *)cellWithNib:(UINib *)cellNib
+                       tableView:(UITableView *)tableView
+                       indexPath:(NSIndexPath *)indexPath
+                          object:(id)object {
+  UITableViewCell* cell = nil;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+  NSString* identifier = NSStringFromClass([object class]);
+  [tableView registerNib:cellNib forCellReuseIdentifier:identifier];
+
+  cell = [tableView dequeueReusableCellWithIdentifier:identifier forIndexPath:indexPath];
+
+  // Allow the cell to configure itself with the object's information.
+	if ([cell respondsToSelector:@selector(shouldUpdateCellWithObject:)]) {
+		if ([(id<NICell>)cell shouldUpdateCellWithObject:object]) {
+			[cell setNeedsLayout];
+			[cell setNeedsDisplay];
+		}
+	}
+
+  return cell;
+}
+
 + (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel
                    cellForTableView:(UITableView *)tableView
                         atIndexPath:(NSIndexPath *)indexPath
                          withObject:(id)object {
   UITableViewCell* cell = nil;
 
-  // If this assertion fires then your app is about to crash. You need to either add an explicit
-  // binding in a NICellFactory object or implement the NICellObject protocol on this object and
-  // return a cell class.
-  NIDASSERT([object respondsToSelector:@selector(cellClass)]);
-
   // Only NICellObject-conformant objects may pass.
   if ([object respondsToSelector:@selector(cellClass)]) {
     Class cellClass = [object cellClass];
     cell = [self cellWithClass:cellClass tableView:tableView object:object];
+
+  } else if ([object respondsToSelector:@selector(cellNib)]) {
+    UINib* nib = [object cellNib];
+    cell = [self cellWithNib:nib tableView:tableView indexPath:indexPath object:object];
   }
+
+  // If this assertion fires then your app is about to crash. You need to either add an explicit
+  // binding in a NICellFactory object or implement the NICellObject protocol on this object and
+  // return a cell class.
+  NIDASSERT(nil != cell);
 
   return cell;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (Class)cellClassFromObject:(id)object {
   if (nil == object) {
     return nil;
@@ -111,14 +131,12 @@
   }
 
   if (nil == cellClass) {
-    cellClass = [self.class objectFromKeyClass:objectClass map:self.objectToCellMap];
+    cellClass = [NIActions objectFromKeyClass:objectClass map:self.objectToCellMap];
   }
 
   return cellClass;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel
                    cellForTableView:(UITableView *)tableView
                         atIndexPath:(NSIndexPath *)indexPath
@@ -126,27 +144,26 @@
   UITableViewCell* cell = nil;
 
   Class cellClass = [self cellClassFromObject:object];
+  if (nil != cellClass) {
+    cell = [[self class] cellWithClass:cellClass tableView:tableView object:object];
+
+  } else if ([object respondsToSelector:@selector(cellNib)]) {
+    UINib* nib = [object cellNib];
+    cell = [[self class] cellWithNib:nib tableView:tableView indexPath:indexPath object:object];
+  }
 
   // If this assertion fires then your app is about to crash. You need to either add an explicit
   // binding in a NICellFactory object or implement the NICellObject protocol on this object and
   // return a cell class.
-  NIDASSERT(nil != cellClass);
+  NIDASSERT(nil != cell);
 
-  if (nil != cellClass) {
-    cell = [[self class] cellWithClass:cellClass tableView:tableView object:object];
-  }
-  
   return cell;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)mapObjectClass:(Class)objectClass toCellClass:(Class)cellClass {
   [self.objectToCellMap setObject:cellClass forKey:(id<NSCopying>)objectClass];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath model:(NITableViewModel *)model {
   CGFloat height = tableView.rowHeight;
   id object = [model objectAtIndexPath:indexPath];
@@ -161,8 +178,6 @@
   return height;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath model:(NITableViewModel *)model {
   CGFloat height = tableView.rowHeight;
   id object = [model objectAtIndexPath:indexPath];
@@ -183,71 +198,15 @@
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-@implementation NICellFactory (KeyClassMapping)
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-+ (id)objectFromKeyClass:(Class)keyClass map:(NSMutableDictionary *)map {
-  id object = [map objectForKey:keyClass];
-
-  if (nil == object) {
-    // No mapping found for this key class, but it may be a subclass of another object that does
-    // have a mapping, so let's see what we can find.
-    Class superClass = nil;
-    for (Class class in map.allKeys) {
-      // We want to find the lowest node in the class hierarchy so that we pick the lowest ancestor
-      // in the hierarchy tree.
-      if ([keyClass isSubclassOfClass:class]
-          && (nil == superClass || [keyClass isSubclassOfClass:superClass])) {
-        superClass = class;
-      }
-    }
-
-    if (nil != superClass) {
-      object = [map objectForKey:superClass];
-
-      // Add this subclass to the map so that next time this result is instant.
-      [map setObject:object forKey:(id<NSCopying>)keyClass];
-    }
-  }
-
-  if (nil == object) {
-    // We couldn't find a mapping at all so let's add an empty mapping.
-    [map setObject:[NSNull class] forKey:(id<NSCopying>)keyClass];
-
-  } else if (object == [NSNull class]) {
-    // Don't return null mappings.
-    object = nil;
-  }
-
-  return object;
-}
-
-@end
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @interface NICellObject()
 @property (nonatomic, assign) Class cellClass;
-@property (nonatomic, NI_STRONG) id userInfo;
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NICellObject
 
-@synthesize cellClass = _cellClass;
-@synthesize userInfo = _userInfo;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithCellClass:(Class)cellClass userInfo:(id)userInfo {
   if ((self = [super init])) {
     _cellClass = cellClass;
@@ -256,23 +215,16 @@
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithCellClass:(Class)cellClass {
   return [self initWithCellClass:cellClass userInfo:nil];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (id)objectWithCellClass:(Class)cellClass userInfo:(id)userInfo {
   return [[self alloc] initWithCellClass:cellClass userInfo:userInfo];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (id)objectWithCellClass:(Class)cellClass {
   return [[self alloc] initWithCellClass:cellClass userInfo:nil];
 }
-
 
 @end

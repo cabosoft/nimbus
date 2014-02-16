@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,18 +22,18 @@
  * A launcher button view that displays an image and and a label beneath it.
  *
  * This view shows the icon anchored to the top middle of the view and the label anchored to the
- * bottom middle. By default the label is a single line label with UILineBreakModeTailTruncation.
+ * bottom middle. By default the label is a single line label with NSLineBreakByTruncatingTail.
  *
  * @image html NILauncherButtonExample1.png "Example of an NILauncherButton"
  *
- *      @ingroup NimbusLauncher
+ * @ingroup NimbusLauncher
  */
 @interface NILauncherButtonView : NIRecyclableView <NILauncherButtonView, NILauncherViewObjectView>
 
-@property (nonatomic, readwrite, NI_STRONG) UIButton* button;
-@property (nonatomic, readwrite, copy) UILabel* label;
+@property (nonatomic, strong) UIButton* button;
+@property (nonatomic, copy) UILabel* label;
 
-@property (nonatomic, readwrite, assign) UIEdgeInsets contentInset;
+@property (nonatomic, assign) UIEdgeInsets contentInset;
 
 @end
 
@@ -42,13 +42,13 @@
 /**
  * The button view that should be used to display the launcher icon.
  *
- *      @fn NILauncherButtonView::button
+ * @fn NILauncherButtonView::button
  */
 
 /**
  * The label view that should show the title of the launcher item.
  *
- *      @fn NILauncherButtonView::label
+ * @fn NILauncherButtonView::label
  */
 
 /** @name Configuring Display Attributes */
@@ -58,5 +58,5 @@
  *
  * The unit of size is points. The default value is 5 points on all sides.
  *
- *      @fn NILauncherButtonView::contentInset
+ * @fn NILauncherButtonView::contentInset
  */

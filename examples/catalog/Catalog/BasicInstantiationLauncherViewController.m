@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,11 +54,12 @@ static NSString* const kButtonReuseIdentifier = @"button";
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  self.view.backgroundColor = [UIColor underPageBackgroundColor];
-}
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
+  self.view.backgroundColor = [UIColor underPageBackgroundColor];
 }
 
 // Similar to UITableViewController, NILauncherViewController automatically sets the dataSource and

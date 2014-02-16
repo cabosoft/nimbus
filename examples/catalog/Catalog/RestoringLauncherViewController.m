@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,12 +44,11 @@
 //
 
 @interface RestoringLauncherViewController () <NILauncherViewModelDelegate>
-@property (nonatomic, readwrite, retain) NILauncherViewModel* model;
+@property (nonatomic, retain) NILauncherViewModel* model;
 @end
 
 @implementation RestoringLauncherViewController
 
-@synthesize model = _model;
 
 // We provide a consistent way to fetch the path to the launcher data.
 - (NSString *)pathForLauncherData {
@@ -90,13 +89,14 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+
   self.view.backgroundColor = [UIColor underPageBackgroundColor];
 
   self.launcherView.dataSource = self.model;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 #pragma mark - NILauncherViewModelDelegate

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -36,9 +36,9 @@ extern "C" {
  *  }
  * @endcode
  *
- *      @ingroup NimbusCore
- *      @defgroup Device-Orientation Device Orientation
- *      @{
+ * @ingroup NimbusCore
+ * @defgroup Device-Orientation Device Orientation
+ * @{
  */
 
 /**
@@ -60,9 +60,19 @@ BOOL NIIsSupportedOrientation(UIInterfaceOrientation orientation);
  *
  * This is simply a convenience method for [UIApplication sharedApplication].statusBarOrientation.
  *
- *      @returns The current interface orientation.
+ * @returns The current interface orientation.
  */
 UIInterfaceOrientation NIInterfaceOrientation(void);
+
+/**
+ * Returns YES if the device is a phone and the orientation is landscape.
+ *
+ * This is a useful check for phone landscape mode which often requires
+ * additional logic to handle the smaller vertical real estate.
+ *
+ * @returns YES if the device is a phone and orientation is landscape.
+ */
+BOOL NIIsLandscapePhoneOrientation(UIInterfaceOrientation orientation);
 
 /**
  * Creates an affine transform for the given device orientation.
@@ -76,7 +86,5 @@ CGAffineTransform NIRotateTransformForOrientation(UIInterfaceOrientation orienta
 };
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of Device Orientation ///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 

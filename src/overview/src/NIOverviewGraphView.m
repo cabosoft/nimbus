@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,15 +22,8 @@
 #error "Nimbus requires ARC support."
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIOverviewGraphView
 
-@synthesize dataSource = _dataSource;
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithFrame:(CGRect)frame {
   if ((self = [super initWithFrame:frame])) {
     self.opaque = NO;
@@ -40,13 +33,14 @@
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)drawGraphWithContext:(CGContextRef)context {
   CGSize contentSize = self.bounds.size;
 
   CGFloat xRange = [self.dataSource graphViewXRange:self];
   CGFloat yRange = [self.dataSource graphViewYRange:self];
+  if (xRange == 0 || yRange == 0) {
+    return;
+  }
 
   [self.dataSource resetPointIterator];
 
@@ -86,8 +80,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)drawRect:(CGRect)rect {
 	CGContextRef context = UIGraphicsGetCurrentContext();
 
@@ -124,6 +116,5 @@
 
   UIGraphicsPopContext();
 }
-
 
 @end

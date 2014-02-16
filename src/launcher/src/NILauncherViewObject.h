@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 /**
  * An implementation of the NILauncherViewObject protocol.
  *
- *      @ingroup NimbusLauncherModel
+ * @ingroup NimbusLauncherModel
  */
 @interface NILauncherViewObject : NSObject <NILauncherViewObject, NSCoding>
 
@@ -34,11 +34,11 @@
  *
  * This is the designated initializer.
  *
- *      @fn NILauncherViewObject::initWithTitle:image:
+ * @fn NILauncherViewObject::initWithTitle:image:
  */
 
 /**
  * Allocates and returns an autoreleased instance of a launcher view object.
  *
- *      @fn NILauncherViewObject::objectWithTitle:image:
+ * @fn NILauncherViewObject::objectWithTitle:image:
  */

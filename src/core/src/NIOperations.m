@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,22 +24,8 @@
 #error "Nimbus requires ARC support."
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIOperation
 
-@synthesize delegate = _delegate;
-@synthesize tag = _tag;
-@synthesize lastError = _lastError;
-
-@synthesize didStartBlock         = _didStartBlock;
-@synthesize didFinishBlock        = _didFinishBlock;
-@synthesize didFailWithErrorBlock = _didFailWithErrorBlock;
-@synthesize willFinishBlock       = _willFinishBlock;
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
   // For an unknown reason these block objects are not released when the NIOperation is deallocated
   // with ARC enabled.
@@ -49,40 +35,28 @@
   _willFinishBlock = nil;
 }
 
+#pragma mark - Initiate delegate notification from the NSOperation
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark Initiate delegate notification from the NSOperation
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didStart {
-	[self performSelectorOnMainThread: @selector(onMainThreadOperationDidStart)
-                         withObject: nil
-                      waitUntilDone: [NSThread isMainThread]];
+	[self performSelectorOnMainThread:@selector(onMainThreadOperationDidStart)
+                         withObject:nil
+                      waitUntilDone:[NSThread isMainThread]];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didFinish {
-	[self performSelectorOnMainThread: @selector(onMainThreadOperationDidFinish)
-                         withObject: nil
-                      waitUntilDone: [NSThread isMainThread]];
+	[self performSelectorOnMainThread:@selector(onMainThreadOperationDidFinish)
+                         withObject:nil
+                      waitUntilDone:[NSThread isMainThread]];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)didFailWithError:(NSError *)error {
   self.lastError = error;
 
-	[self performSelectorOnMainThread: @selector(onMainThreadOperationDidFailWithError:)
-                         withObject: error
-                      waitUntilDone: [NSThread isMainThread]];
+	[self performSelectorOnMainThread:@selector(onMainThreadOperationDidFailWithError:)
+                         withObject:error
+                      waitUntilDone:[NSThread isMainThread]];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)willFinish {
   if ([self.delegate respondsToSelector:@selector(nimbusOperationWillFinish:)]) {
     [self.delegate nimbusOperationWillFinish:self];
@@ -93,14 +67,8 @@
   }
 }
 
+#pragma mark - Main Thread
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark Main Thread
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)onMainThreadOperationDidStart {
   // This method should only be called on the main thread.
   NIDASSERT([NSThread isMainThread]);
@@ -114,8 +82,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)onMainThreadOperationDidFinish {
   // This method should only be called on the main thread.
   NIDASSERT([NSThread isMainThread]);
@@ -129,8 +95,6 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)onMainThreadOperationDidFailWithError:(NSError *)error {
   // This method should only be called on the main thread.
   NIDASSERT([NSThread isMainThread]);
@@ -143,6 +107,5 @@
     self.didFailWithErrorBlock(self, error);
   }
 }
-
 
 @end

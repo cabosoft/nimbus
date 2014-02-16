@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -98,14 +98,17 @@ view.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#import "NIActions.h"
+#import "NIButtonUtilities.h"
 #import "NICommonMetrics.h"
-#import "NIDataStructures.h"
+#import "NIDataStructures.h"  // Deprecated. Will be removed after Feb 28, 2014
 #import "NIDebuggingTools.h"
 #import "NIDeviceOrientation.h"
 #import "NIError.h"
 #import "NIFoundationMethods.h"
+#import "NIImageUtilities.h"
 #import "NIInMemoryCache.h"
-#import "NINavigationAppearance.h"
+#import "NINavigationAppearance.h"  // Deprecated. Will be removed after Feb 28, 2014
 #import "NINetworkActivity.h"
 #import "NINonEmptyCollectionTesting.h"
 #import "NINonRetainingCollections.h"

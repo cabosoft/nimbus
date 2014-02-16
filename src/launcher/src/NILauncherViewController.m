@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,20 +23,12 @@
 #endif
 
 @interface NILauncherViewController()
-@property (nonatomic, readwrite, assign) BOOL shouldReloadData;
+@property (nonatomic, assign) BOOL shouldReloadData;
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NILauncherViewController
 
-@synthesize shouldReloadData = _shouldReloadData;
-@synthesize launcherView = _launcherView;
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadView {
   [super loadView];
 
@@ -50,16 +42,6 @@
   self.shouldReloadData = YES;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)viewDidUnload {
-  self.launcherView = nil;
-
-  [super viewDidUnload];
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
 
@@ -69,38 +51,27 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
   [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 
   [self.launcherView willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
   [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 
   [self.launcherView willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - NILauncherDataSource
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)launcherView:(NILauncherView *)launcherView numberOfButtonsInPage:(NSInteger)page {
   return 0;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIView<NILauncherButtonView> *)launcherView:(NILauncherView *)launcherView buttonViewForPage:(NSInteger)page atIndex:(NSInteger)buttonIndex {
   return nil;
 }
-
 
 @end

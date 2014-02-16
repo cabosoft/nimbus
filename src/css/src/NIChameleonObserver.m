@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #import "NIStylesheet.h"
 #import "NIStylesheetCache.h"
+#import "NIUserInterfaceString.h"
 #import "NimbusCore+Additions.h"
 #import "AFNetworking.h"
 
@@ -27,25 +28,29 @@
 
 static NSString* const kWatchFilenameKey = @"___watch___";
 static const NSTimeInterval kTimeoutInterval = 1000;
+static const NSTimeInterval kRetryInterval = 10000;
 static const NSInteger kMaxNumberOfRetries = 3;
 
-@interface NIChameleonObserver()
+NSString* const NIJSONDidChangeNotification = @"NIJSONDidChangeNotification";
+NSString* const NIJSONDidChangeFilePathKey = @"NIJSONPathKey";
+NSString* const NIJSONDidChangeNameKey = @"NIJSONNameKey";
+
+@interface NIChameleonObserver() <
+    NSNetServiceBrowserDelegate,
+    NSNetServiceDelegate
+>
 - (NSString *)pathFromPath:(NSString *)path;
+@property (nonatomic,strong) NSNetServiceBrowser *netBrowser;
+@property (nonatomic,strong) NSNetService *netService;
 @end
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation NIChameleonObserver
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
   [_queue cancelAllOperations];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithStylesheetCache:(NIStylesheetCache *)stylesheetCache host:(NSString *)host {
   if ((self = [super init])) {
     // You must provide a stylesheet cache.
@@ -57,7 +62,7 @@ static const NSInteger kMaxNumberOfRetries = 3;
     if ([host hasSuffix:@"/"]) {
       _host = [host copy];
 
-    } else {
+    } else if (host) {
       _host = [[host stringByAppendingString:@"/"] copy];
     }
 
@@ -84,8 +89,6 @@ static const NSInteger kMaxNumberOfRetries = 3;
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)downloadStylesheetWithFilename:(NSString *)path {
   NSURL* url = [NSURL URLWithString:[_host stringByAppendingString:path]];
   NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
@@ -129,36 +132,73 @@ static const NSInteger kMaxNumberOfRetries = 3;
   [_queue addOperation:requestOp];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (NSString *)pathFromPath:(NSString *)path {
-  return [path md5Hash];
+- (void)downloadStringsWithFilename:(NSString *)path {
+  NSURL* url = [NSURL URLWithString:[_host stringByAppendingString:path]];
+  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
+  
+  AFHTTPRequestOperation* requestOp = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+  
+  [requestOp setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+    NSArray* pathParts = [[operation.request.URL absoluteString] pathComponents];
+    NSString* resultPath = [[pathParts subarrayWithRange:NSMakeRange(2, [pathParts count] - 2)]
+                            componentsJoinedByString:@"/"];
+    NSString* rootPath = NIPathForDocumentsResource(nil);
+    NSString* hashedPath = [self pathFromPath:resultPath];
+    NSString* diskPath = [rootPath stringByAppendingPathComponent:hashedPath];
+    [responseObject writeToFile:diskPath atomically:YES];
+    
+    NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
+    [nc postNotificationName:NIStringsDidChangeNotification object:nil userInfo:@{
+        NIStringsDidChangeFilePathKey: diskPath
+     }];
+  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+  }];
+  [_queue addOperation:requestOp];
 }
 
+- (void)downloadJSONWithFilename:(NSString *)path {
+    NSURL* url = [NSURL URLWithString:[_host stringByAppendingString:path]];
+    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
+    
+    AFHTTPRequestOperation* requestOp = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    
+    [requestOp setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSArray* pathParts = [[operation.request.URL absoluteString] pathComponents];
+        NSString* resultPath = [[pathParts subarrayWithRange:NSMakeRange(2, [pathParts count] - 2)]
+                                componentsJoinedByString:@"/"];
+        NSString* rootPath = NIPathForDocumentsResource(nil);
+        NSString* hashedPath = [self pathFromPath:resultPath];
+        NSString* diskPath = [rootPath stringByAppendingPathComponent:hashedPath];
+        [responseObject writeToFile:diskPath atomically:YES];
+        
+        NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
+        [nc postNotificationName:NIJSONDidChangeNotification object:nil userInfo:@{
+            NIJSONDidChangeFilePathKey: diskPath,
+            NIJSONDidChangeNameKey: path
+         }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+    }];
+    [_queue addOperation:requestOp];
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
+- (NSString *)pathFromPath:(NSString *)path {
+  return NIMD5HashFromString(path);
+}
+
 #pragma mark - NICSSParserDelegate
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSString *)cssParser:(NICSSParser *)parser pathFromPath:(NSString *)path {
   return [self pathFromPath:path];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark - Public Methods
+#pragma mark - Public
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NIStylesheet *)stylesheetForPath:(NSString *)path {
   return [_stylesheetCache stylesheetWithPath:path];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)watchSkinChanges {
   NSURL* url = [NSURL URLWithString:[_host stringByAppendingString:@"watch"]];
   NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
@@ -171,7 +211,13 @@ static const NSInteger kMaxNumberOfRetries = 3;
 
     NSArray* files = [stringData componentsSeparatedByString:@"\n"];
     for (NSString* filename in files) {
-      [self downloadStylesheetWithFilename:filename];
+      if ([[filename lowercaseString] hasSuffix:@".strings"]) {
+        [self downloadStringsWithFilename: filename];
+      } else if ([[filename lowercaseString] hasSuffix:@".json"]) {
+        [self downloadJSONWithFilename:filename];
+      } else {
+        [self downloadStylesheetWithFilename:filename];
+      }
     }
 
     // Immediately start watching for more skin changes.
@@ -182,12 +228,38 @@ static const NSInteger kMaxNumberOfRetries = 3;
     if (_retryCount < kMaxNumberOfRetries) {
       ++_retryCount;
       
-      [self watchSkinChanges];
+      dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kRetryInterval * NSEC_PER_MSEC));
+      dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        [self watchSkinChanges];
+      });
     }
   }];
 
   [_queue addOperation:requestOp];
 }
 
+-(void)enableBonjourDiscovery:(NSString *)serviceName
+{
+    self.netBrowser = [[NSNetServiceBrowser alloc] init];
+    self.netBrowser.delegate = self;
+    [self.netBrowser searchForServicesOfType:[NSString stringWithFormat:@"_%@._tcp", serviceName] inDomain:@""];
+}
+
+-(void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing
+{
+    [self.netBrowser stop];
+    self.netBrowser = nil;
+
+    self.netService = aNetService;
+    aNetService.delegate = self;
+    [aNetService resolveWithTimeout:15.0];
+}
+
+-(void)netServiceDidResolveAddress:(NSNetService *)sender
+{
+    _host = [NSString stringWithFormat:@"http://%@:%d/", [sender hostName], [sender port]];
+    self.netService = nil;
+    [self watchSkinChanges];
+}
 
 @end

@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,14 +51,16 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  
+
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
+  self.view.backgroundColor = [UIColor whiteColor];
+
   NIAttributedLabel* label = [[NIAttributedLabel alloc] initWithFrame:CGRectZero];
   label.numberOfLines = 0;
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < NIIOS_6_0
-  label.lineBreakMode = UILineBreakModeWordWrap;
-#else
   label.lineBreakMode = NSLineBreakByWordWrapping;
-#endif
   label.autoresizingMask = UIViewAutoresizingFlexibleDimensions;
   label.frame = CGRectInset(self.view.bounds, 20, 20);
   label.font = [UIFont fontWithName:@"AmericanTypewriter" size:15];
@@ -68,10 +70,6 @@
   label.text = @"Nimbus' latest documentation is always available at http://latest.docs.nimbuskit.info/";
 
   [self.view addSubview:label];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 #pragma mark - NIAttributedLabelDelegate

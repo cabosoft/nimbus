@@ -18,7 +18,7 @@
 #import "NIDebuggingTools.h"
 #import "NISDKAvailability.h"
 
-#import "NIPreprocessorMacros.h" /* for NI_WEAK */
+#import "NIPreprocessorMacros.h" /* for weak */
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
 #error "Nimbus requires ARC support."
@@ -32,7 +32,7 @@ static NSMutableArray* sAppearanceStack = nil;
  *
  * Used in conjunction with NINavigationAppearance.
  *
- *      @ingroup NimbusCore
+ * @ingroup NimbusCore
  */
 @interface NINavigationAppearanceSnapshot : NSObject {
 @private
@@ -62,17 +62,17 @@ static NSMutableArray* sAppearanceStack = nil;
 /**
  * Holds value of UINavigationBar's tintColor property.
  */
-@property (nonatomic, readonly, NI_STRONG) UIColor* navBarTintColor;
+@property (nonatomic, readonly, strong) UIColor* navBarTintColor;
 
 /**
  * Holds value of UINavigationBar's UIBarMetricsDefault backgroundImage property.
  */
-@property (nonatomic, readonly, NI_STRONG) UIImage* navBarDefaultImage;
+@property (nonatomic, readonly, strong) UIImage* navBarDefaultImage;
 
 /**
  * Holds value of UINavigationBar's UIBarMetricsLandscapePhone backgroundImage property.
  */
-@property (nonatomic, readonly, NI_STRONG) UIImage* navBarLandscapePhoneImage;
+@property (nonatomic, readonly, strong) UIImage* navBarLandscapePhoneImage;
 
 /**
  * Create a new snapshot.
@@ -90,7 +90,6 @@ static NSMutableArray* sAppearanceStack = nil;
 @implementation NINavigationAppearance
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (void)pushAppearanceForNavigationController:(UINavigationController *)navigationController {
   if (!sAppearanceStack) {
     sAppearanceStack = [[NSMutableArray alloc] init];
@@ -100,8 +99,6 @@ static NSMutableArray* sAppearanceStack = nil;
   [sAppearanceStack addObject:snapshot];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (void)popAppearanceForNavigationController:(UINavigationController *)navigationController animated:(BOOL)animated {
   NIDASSERT([sAppearanceStack count] > 0);
   if ([sAppearanceStack count]) {
@@ -115,33 +112,21 @@ static NSMutableArray* sAppearanceStack = nil;
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (NSInteger)count {
   return [sAppearanceStack count];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (void)clear {
   [sAppearanceStack removeAllObjects];
   sAppearanceStack = nil;
 }
-
 
 @end
 
 
 @implementation NINavigationAppearanceSnapshot
 
-@synthesize navBarTranslucent = _navBarTranslucent;
-@synthesize navBarStyle = _navBarStyle;
-@synthesize statusBarStyle = _statusBarStyle;
-@synthesize navBarTintColor = _navBarTintColor;
-@synthesize navBarDefaultImage = _navBarDefaultImage;
-@synthesize navBarLandscapePhoneImage = _navBarLandscapePhoneImage;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initForNavigationController:(UINavigationController *)navigationController {
   self = [super init];
   if (self) {
@@ -161,8 +146,6 @@ static NSMutableArray* sAppearanceStack = nil;
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)restoreForNavigationController:(UINavigationController *)navigationController animated:(BOOL)animated {
   [[UIApplication sharedApplication] setStatusBarStyle:self.statusBarStyle animated:animated];
   navigationController.navigationBar.barStyle = self.navBarStyle;
@@ -176,6 +159,5 @@ static NSMutableArray* sAppearanceStack = nil;
                                              forBarMetrics:UIBarMetricsLandscapePhone];
   }
 }
-
 
 @end

@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,21 +52,18 @@ typedef enum {
 } SubRadioOptions;
 
 @interface FormCellCatalogViewController () <UITextFieldDelegate, NIRadioGroupDelegate>
-@property (nonatomic, readwrite, retain) NITableViewModel* model;
+@property (nonatomic, retain) NITableViewModel* model;
 
 // A radio group object allows us to easily maintain radio group-style interactions in a table view.
-@property (nonatomic, readwrite, retain) NIRadioGroup* radioGroup;
+@property (nonatomic, retain) NIRadioGroup* radioGroup;
 
 // Each radio group object maintains a specific set of table objects, so in order to have multiple
 // radio groups you need to instantiate multiple radio group objects.
-@property (nonatomic, readwrite, retain) NIRadioGroup* subRadioGroup;
+@property (nonatomic, retain) NIRadioGroup* subRadioGroup;
 @end
 
 @implementation FormCellCatalogViewController
 
-@synthesize model = _model;
-@synthesize radioGroup = _radioGroup;
-@synthesize subRadioGroup = _subRadioGroup;
 
 - (id)initWithStyle:(UITableViewStyle)style {
   if ((self = [super initWithStyle:UITableViewStyleGrouped])) {

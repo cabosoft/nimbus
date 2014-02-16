@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,18 +36,14 @@
 //
 
 @interface InterappViewController () <UIDocumentInteractionControllerDelegate>
-@property (nonatomic, readwrite, retain) NITableViewModel* model;
-@property (nonatomic, readwrite, retain) NITableViewActions* actions;
-@property (nonatomic, readwrite, copy) NSURL* fileUrl;
-@property (nonatomic, readwrite, retain) UIDocumentInteractionController* docController;
+@property (nonatomic, retain) NITableViewModel* model;
+@property (nonatomic, retain) NITableViewActions* actions;
+@property (nonatomic, copy) NSURL* fileUrl;
+@property (nonatomic, retain) UIDocumentInteractionController* docController;
 @end
 
 @implementation InterappViewController
 
-@synthesize model = _model;
-@synthesize actions = _actions;
-@synthesize fileUrl = _fileUrl;
-@synthesize docController = _docController;
 
 - (void)cleanupDocController {
   [[NSFileManager defaultManager] removeItemAtURL:self.fileUrl error:nil];
@@ -59,7 +55,7 @@
 - (id)objectWithAction:(BOOL (^)())action title:(NSString *)title subtitle:(NSString *)subtitle {
   return [self.actions attachToObject:[NISubtitleCellObject objectWithTitle:title subtitle:subtitle]
                              tapBlock:
-          ^BOOL(id object, UIViewController *controller) {
+          ^BOOL(id object, UIViewController *controller, NSIndexPath* indexPath) {
             if (!action()) {
               UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"We've givin' her all she's got, cap'n!"
                                                               message:@"The app you tried to open does not appear to be installed on this device."
@@ -189,10 +185,6 @@
 
   self.tableView.dataSource = self.model;
   self.tableView.delegate = [self.actions forwardingTo:self];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 #pragma mark - UIDocumentInteractionControllerDelegate

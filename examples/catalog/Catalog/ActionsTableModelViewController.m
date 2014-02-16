@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,16 +42,14 @@
 //
 
 @interface ActionsTableModelViewController ()
-@property (nonatomic, readwrite, retain) NITableViewModel* model;
+@property (nonatomic, retain) NITableViewModel* model;
 
 // The actions are stored in a separate object from the model.
-@property (nonatomic, readwrite, retain) NITableViewActions* actions;
+@property (nonatomic, retain) NITableViewActions* actions;
 @end
 
 @implementation ActionsTableModelViewController
 
-@synthesize model = _model;
-@synthesize actions = _actions;
 
 - (id)initWithStyle:(UITableViewStyle)style {
   if ((self = [super initWithStyle:UITableViewStyleGrouped])) {
@@ -63,7 +61,7 @@
 
     // This is what an action block looks like. The block is given the object that was tapped and
     // the containing controller. In the following two blocks we simply show an alert view.
-    NITableViewActionBlock tapAction = ^BOOL(id object, UIViewController *controller) {
+    NIActionBlock tapAction = ^BOOL(id object, UIViewController *controller, NSIndexPath* indexPath) {
       UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Notice"
                                                       message:@"You tapped a cell!"
                                                      delegate:nil
@@ -76,7 +74,7 @@
       return YES;
     };
     
-    NITableViewActionBlock tapAction2 = ^BOOL(id object, UIViewController *controller) {
+    NIActionBlock tapAction2 = ^BOOL(id object, UIViewController *controller, NSIndexPath* indexPath) {
       UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Notice"
                                                       message:@"Alternative tap action"
                                                      delegate:nil

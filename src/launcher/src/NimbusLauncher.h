@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,12 +50,11 @@
  *
 @code
 @implementation CustomLauncherViewController()
-@property (nonatomic, readwrite, retain) NILauncherViewModel* model;
+@property (nonatomic, retain) NILauncherViewModel* model;
 @end
 
 @interface CustomLauncherViewController
 
-@synthesize model = _model;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {

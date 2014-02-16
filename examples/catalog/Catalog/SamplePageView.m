@@ -1,6 +1,6 @@
 //
 // Copyright 2012 Manu Cornet
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,19 +18,19 @@
 
 @implementation SamplePageView
 
-@synthesize label = _label;
 @synthesize pageIndex = _pageIndex;
-@synthesize reuseIdentifier = _reuseIdentifier;
 
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
   if ((self = [super initWithFrame:CGRectZero])) {
     _label = [[UILabel alloc] initWithFrame:self.bounds];
     _label.autoresizingMask = UIViewAutoresizingFlexibleDimensions;
     _label.font = [UIFont systemFontOfSize:26];
-    _label.textAlignment = UITextAlignmentCenter;
+    _label.textAlignment = NSTextAlignmentCenter;
     _label.backgroundColor = [UIColor clearColor];
     
     [self addSubview:_label];
+      
+    self.reuseIdentifier = reuseIdentifier;
   }
   return self;
 }

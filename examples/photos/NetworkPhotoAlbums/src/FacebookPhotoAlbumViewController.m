@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 Jeff Verkoeyen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,17 +17,13 @@
 #import "FacebookPhotoAlbumViewController.h"
 
 #import "CaptionedPhotoView.h"
+#import "NIPagingScrollView+Subclassing.h"
 #import "AFNetworking.h"
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation FacebookPhotoAlbumViewController
 
-@synthesize facebookAlbumId = _facebookAlbumId;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWith:(id)object {
   if ((self = [self initWithNibName:nil bundle:nil])) {
     self.facebookAlbumId = object;
@@ -35,7 +31,6 @@
   return self;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadThumbnails {
   for (NSInteger ix = 0; ix < [_photoInformation count]; ++ix) {
     NSDictionary* photo = [_photoInformation objectAtIndex:ix];
@@ -52,10 +47,8 @@
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void (^)(NSURLRequest *request, NSHTTPURLResponse *response, id JSON))blockForAlbumProcessing {
-  return ^(NSURLRequest *request, NSHTTPURLResponse *response, id object) {
+- (void (^)(AFHTTPRequestOperation *operation, id JSON))blockForAlbumProcessing {
+  return ^(AFHTTPRequestOperation *operation, id object) {
     NSArray* data = [object objectForKey:@"data"];
     
     NSMutableArray* photoInformation = [NSMutableArray arrayWithCapacity:[data count]];
@@ -113,8 +106,6 @@
   };
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadAlbumInformation {
   NSString* albumURLPath = [NSString stringWithFormat:
                             @"http://graph.facebook.com/%@/photos?limit=200",
@@ -130,25 +121,15 @@
   // frustrating is that you can't ask *not* to receive the comments from the graph API.
   request.timeoutInterval = 200;
 
-  AFJSONRequestOperation* albumRequest =
-  [AFJSONRequestOperation JSONRequestOperationWithRequest:request
-                                                  success:[self blockForAlbumProcessing]
-                                                  failure:
-   ^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
-     
-   }];
-
+  AFHTTPRequestOperation* albumRequest = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+  albumRequest.responseSerializer = [AFJSONResponseSerializer serializer];
+  [albumRequest setCompletionBlockWithSuccess:[self blockForAlbumProcessing] failure:nil];
   [self.queue addOperation:albumRequest];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark UIViewController
+#pragma mark - UIViewController
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)loadView {
   [super loadView];
 
@@ -161,28 +142,19 @@
   [self loadAlbumInformation];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)viewDidUnload {
   _photoInformation = nil;
 
   [super viewDidUnload];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NIPhotoScrubberViewDataSource
+#pragma mark - NIPhotoScrubberViewDataSource
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)numberOfPhotosInScrubberView:(NIPhotoScrubberView *)photoScrubberView {
   return [_photoInformation count];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)photoScrubberView: (NIPhotoScrubberView *)photoScrubberView
               thumbnailAtIndex: (NSInteger)thumbnailIndex {
   NSString* photoIndexKey = [self cacheKeyForPhotoIndex:thumbnailIndex];
@@ -200,7 +172,6 @@
   return image;
 }
 
-
 - (void)setChromeVisibility:(BOOL)isVisible animated:(BOOL)animated {
   [super setChromeVisibility:isVisible animated:animated];
 
@@ -215,20 +186,13 @@
   [UIView commitAnimations];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark -
-#pragma mark NIPhotoAlbumScrollViewDataSource
+#pragma mark - NIPhotoAlbumScrollViewDataSource
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSInteger)numberOfPagesInPagingScrollView:(NIPhotoAlbumScrollView *)photoScrollView {
   return [_photoInformation count];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIImage *)photoAlbumScrollView: (NIPhotoAlbumScrollView *)photoAlbumScrollView
                      photoAtIndex: (NSInteger)photoIndex
                         photoSize: (NIPhotoScrollViewPhotoSize *)photoSize
@@ -272,15 +236,11 @@
   return image;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)photoAlbumScrollView: (NIPhotoAlbumScrollView *)photoAlbumScrollView
      stopLoadingPhotoAtIndex: (NSInteger)photoIndex {
   // TODO: Figure out how to implement this with AFNetworking.
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIView<NIPagingScrollViewPage>*)pagingScrollView:(NIPagingScrollView *)pagingScrollView pageViewForIndex:(NSInteger)pageIndex {
   // TODO (jverkoey Nov 27, 2011): We should make this sort of custom logic easier to build.
   UIView<NIPagingScrollViewPage>* pageView = nil;
@@ -300,6 +260,5 @@
   
   return pageView;
 }
-
 
 @end

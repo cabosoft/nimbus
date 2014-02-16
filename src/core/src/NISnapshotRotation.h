@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import "NIPreprocessorMacros.h" /* for NI_WEAK */
-
 /**
  * An object designed to easily implement snapshot rotation.
  *
@@ -32,9 +30,9 @@
  * This functionality has been adopted from WWDC 2012 session 240 "Polishing Your Interface
  * Rotations".
  *
- *      @ingroup NimbusCore
- *      @defgroup Snapshot-Rotation Snapshot Rotation
- *      @{
+ * @ingroup NimbusCore
+ * @defgroup Snapshot-Rotation Snapshot Rotation
+ * @{
  */
 
 @protocol NISnapshotRotationDelegate;
@@ -50,7 +48,7 @@
 // Designated initializer.
 - (id)initWithDelegate:(id<NISnapshotRotationDelegate>)delegate;
 
-@property (nonatomic, readwrite, NI_WEAK) id<NISnapshotRotationDelegate> delegate;
+@property (nonatomic, weak) id<NISnapshotRotationDelegate> delegate;
 
 @property (nonatomic, readonly, assign) CGRect frameBeforeRotation;
 @property (nonatomic, readonly, assign) CGRect frameAfterRotation;
@@ -123,14 +121,18 @@
 
 @end
 
+#if defined __cplusplus
+extern "C" {
+#endif
+
 /**
  * Returns an opaque UIImage snapshot of the given view.
  *
  * This method takes into account the offset of scrollable views and captures whatever is currently
  * in the frame of the view.
  *
- *      @param view A snapshot will be taken of this view.
- *      @returns A UIImage with the snapshot of @c view.
+ * @param view A snapshot will be taken of this view.
+ * @returns A UIImage with the snapshot of @c view.
  */
 UIImage* NISnapshotOfView(UIView* view);
 
@@ -139,8 +141,8 @@ UIImage* NISnapshotOfView(UIView* view);
  *
  * The frame of the returned view is set to match the frame of @c view.
  *
- *      @param view A snapshot will be taken of this view.
- *      @returns A UIImageView with the snapshot of @c view and matching frame.
+ * @param view A snapshot will be taken of this view.
+ * @returns A UIImageView with the snapshot of @c view and matching frame.
  */
 UIImageView* NISnapshotViewOfView(UIView* view);
 
@@ -150,8 +152,8 @@ UIImageView* NISnapshotViewOfView(UIView* view);
  * This method takes into account the offset of scrollable views and captures whatever is currently
  * in the frame of the view.
  *
- *      @param view A snapshot will be taken of this view.
- *      @returns A UIImage with the snapshot of @c view.
+ * @param view A snapshot will be taken of this view.
+ * @returns A UIImage with the snapshot of @c view.
  */
 UIImage* NISnapshotOfViewWithTransparency(UIView* view);
 
@@ -160,10 +162,14 @@ UIImage* NISnapshotOfViewWithTransparency(UIView* view);
  *
  * The frame of the returned view is set to match the frame of @c view.
  *
- *      @param view A snapshot will be taken of this view.
- *      @returns A UIImageView with the snapshot of @c view and matching frame.
+ * @param view A snapshot will be taken of this view.
+ * @returns A UIImageView with the snapshot of @c view and matching frame.
  */
 UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
+
+#if defined __cplusplus
+}
+#endif
 
 /**
  * @}
@@ -174,9 +180,9 @@ UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
 /**
  * Initializes a newly allocated rotation object with a given delegate.
  *
- *      @param delegate A delegate that implements the NISnapshotRotation protocol.
- *      @returns A NISnapshotRotation object initialized with @c delegate.
- *      @fn NISnapshotRotation::initWithDelegate:
+ * @param delegate A delegate that implements the NISnapshotRotation protocol.
+ * @returns A NISnapshotRotation object initialized with @c delegate.
+ * @fn NISnapshotRotation::initWithDelegate:
  */
 
 /** @name Accessing the Delegate */
@@ -187,7 +193,7 @@ UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
  * The delegate must adopt the NISnapshotRotation protocol. The NISnapshotRotation class, which does
  * not retain the delegate, invokes each protocol method the delegate implements.
  *
- *      @fn NISnapshotRotation::delegate
+ * @fn NISnapshotRotation::delegate
  */
 
 /** @name Implementing UIViewController Autorotation */
@@ -198,7 +204,7 @@ UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
  *
  * This method must be called from your UIViewController implementation.
  *
- *      @fn NISnapshotRotation::willRotateToInterfaceOrientation:duration:
+ * @fn NISnapshotRotation::willRotateToInterfaceOrientation:duration:
  */
 
 /**
@@ -206,7 +212,7 @@ UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
  *
  * This method must be called from your UIViewController implementation.
  *
- *      @fn NISnapshotRotation::willAnimateRotationToInterfaceOrientation:duration:
+ * @fn NISnapshotRotation::willAnimateRotationToInterfaceOrientation:duration:
  */
 
 /**
@@ -214,5 +220,5 @@ UIImageView* NISnapshotViewOfViewWithTransparency(UIView* view);
  *
  * This method must be called from your UIViewController implementation.
  *
- *      @fn NISnapshotRotation::didRotateFromInterfaceOrientation:
+ * @fn NISnapshotRotation::didRotateFromInterfaceOrientation:
  */

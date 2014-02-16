@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -26,7 +26,6 @@
 const UIImageResizingMode UIImageResizingModeStretch = -1;
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL NIIsPad(void) {
   static NSInteger isPad = -1;
   if (isPad < 0) {
@@ -44,61 +43,39 @@ BOOL NIIs4Inch() {
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+BOOL NIIsPhone(void) {
+  static NSInteger isPhone = -1;
+  if (isPhone < 0) {
+    isPhone = ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) ? 1 : 0;
+  }
+  return isPhone > 0;
+}
+
+BOOL NIIsTintColorGloballySupported(void) {
+  static NSInteger isTintColorGloballySupported = -1;
+  if (isTintColorGloballySupported < 0) {
+    UIView* view = [[UIView alloc] init];
+    isTintColorGloballySupported = [view respondsToSelector:@selector(tintColor)];
+  }
+  return isTintColorGloballySupported > 0;
+}
+
 BOOL NIDeviceOSVersionIsAtLeast(double versionNumber) {
   return kCFCoreFoundationVersionNumber >= versionNumber;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 CGFloat NIScreenScale(void) {
-  static int respondsToScale = -1;
-  if (respondsToScale == -1) {
-    // Avoid calling this anymore than we need to.
-    respondsToScale = !!([[UIScreen mainScreen] respondsToSelector:@selector(scale)]);
-  }
-
-  if (respondsToScale) {
-    return [[UIScreen mainScreen] scale];
-
-  } else {
-    return 1;
-  }
+  return [[UIScreen mainScreen] scale];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 BOOL NIIsRetina(void) {
   return NIScreenScale() == 2.f;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 Class NIUIPopoverControllerClass(void) {
-  static Class sClass = nil;
-  static BOOL hasChecked = NO;
-  if (!hasChecked) {
-    hasChecked = YES;
-    sClass = NSClassFromString(@"UIPopoverController");
-  }
-  return sClass;
+  return [UIPopoverController class];
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 Class NIUITapGestureRecognizerClass(void) {
-  static Class sClass = nil;
-  static BOOL hasChecked = NO;
-  if (!hasChecked) {
-    hasChecked = YES;
-
-    // An interesting gotcha: UITapGestureRecognizer actually *does* exist in iOS 3.0, but does
-    // not conform to all of the same methods that the 3.2 implementation does. This can be
-    // really confusing, so instead of returning the class, we'll always return nil on
-    // pre-iOS 3.2 devices.
-    if (NIDeviceOSVersionIsAtLeast(kCFCoreFoundationVersionNumber_iPhoneOS_3_2)) {
-      sClass = NSClassFromString(@"UITapGestureRecognizer");
-    }
-  }
-  return sClass;
+  return [UITapGestureRecognizer class];
 }

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import "NIPreprocessorMacros.h" /* for NI_WEAK */
+#import "NIPreprocessorMacros.h" /* for weak */
 
 @class NIOperation;
 
@@ -46,18 +46,18 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  * of changes in the operation's state. Calling these methods will notify the delegate and the
  * blocks if provided.
  *
- *      @ingroup Operations
+ * @ingroup Operations
  */
 @interface NIOperation : NSOperation
 
-@property (readwrite, NI_WEAK) id<NIOperationDelegate> delegate;
-@property (readonly,  NI_STRONG) NSError* lastError;
-@property (readwrite, assign) NSInteger tag;
+@property (weak) id<NIOperationDelegate> delegate;
+@property (readonly, strong) NSError* lastError;
+@property (assign) NSInteger tag;
 
-@property (readwrite, copy) NIOperationBlock didStartBlock;
-@property (readwrite, copy) NIOperationBlock didFinishBlock;
-@property (readwrite, copy) NIOperationDidFailBlock didFailWithErrorBlock;
-@property (readwrite, copy) NIOperationBlock willFinishBlock;
+@property (copy) NIOperationBlock didStartBlock;
+@property (copy) NIOperationBlock didFinishBlock;
+@property (copy) NIOperationDidFailBlock didFailWithErrorBlock;
+@property (copy) NIOperationBlock willFinishBlock;
 
 - (void)didStart;
 - (void)didFinish;
@@ -69,7 +69,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
 /**
  * The delegate protocol for an NIOperation.
  *
- *      @ingroup Operations
+ * @ingroup Operations
  */
 @protocol NIOperationDelegate <NSObject>
 @optional
@@ -105,7 +105,6 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // NIOperation
 
 /** @name Delegation */
@@ -115,7 +114,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  *
  * All delegate methods are performed on the main thread.
  *
- *      @fn NIOperation::delegate
+ * @fn NIOperation::delegate
  */
 
 
@@ -124,7 +123,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
 /**
  * The error last passed to the didFailWithError notification.
  *
- *      @fn NIOperation::lastError
+ * @fn NIOperation::lastError
  */
 
 
@@ -133,7 +132,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
 /**
  * A simple tagging mechanism for identifying operations.
  *
- *      @fn NIOperation::tag
+ * @fn NIOperation::tag
  */
 
 
@@ -144,7 +143,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  *
  * Performed on the main thread.
  *
- *      @fn NIOperation::didStartBlock
+ * @fn NIOperation::didStartBlock
  */
 
 /**
@@ -154,7 +153,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  *
  * Performed on the main thread.
  *
- *      @fn NIOperation::didFinishBlock
+ * @fn NIOperation::didFinishBlock
  */
 
 /**
@@ -164,7 +163,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  *
  * Performed on the main thread.
  *
- *      @fn NIOperation::didFailWithErrorBlock
+ * @fn NIOperation::didFailWithErrorBlock
  */
 
 /**
@@ -174,7 +173,7 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
  *
  * Performed in the operation's thread.
  *
- *      @fn NIOperation::willFinishBlock
+ * @fn NIOperation::willFinishBlock
  */
 
 
@@ -188,23 +187,23 @@ typedef void (^NIOperationDidFailBlock)(NIOperation* operation, NSError* error);
 /**
  * On the main thread, notify the delegate that the operation has begun.
  *
- *      @fn NIOperation::didStart
+ * @fn NIOperation::didStart
  */
 
 /**
  * On the main thread, notify the delegate that the operation has finished.
  *
- *      @fn NIOperation::didFinish
+ * @fn NIOperation::didFinish
  */
 
 /**
  * On the main thread, notify the delegate that the operation has failed.
  *
- *      @fn NIOperation::didFailWithError:
+ * @fn NIOperation::didFailWithError:
  */
 
 /**
  * In the operation's thread, notify the delegate that the operation will finish successfully.
  *
- *      @fn NIOperation::willFinish
+ * @fn NIOperation::willFinish
  */

@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Forked from Three20 June 10, 2011 - Copyright 2009-2011 Facebook
 //
@@ -19,8 +19,7 @@
 #import <Foundation/Foundation.h>
 
 
-#pragma mark -
-#pragma mark Preprocessor Macros
+#pragma mark - Preprocessor Macros
 
 /**
  * Preprocessor macros are added to Nimbus with care. Macros hide functionality and are difficult
@@ -113,7 +112,7 @@ NI_FIX_CATEGORY_BUG(UIViewController_MyCustomCategory);
  * categories and no classes.
  * See http://developer.apple.com/library/mac/#qa/qa2006/qa1490.html for more info.
  */
-#define NI_FIX_CATEGORY_BUG(name) @interface NI_FIX_CATEGORY_BUG_##name @end \
+#define NI_FIX_CATEGORY_BUG(name) @interface NI_FIX_CATEGORY_BUG_##name : NSObject @end \
 @implementation NI_FIX_CATEGORY_BUG_##name @end
 
 /**
@@ -126,23 +125,4 @@ NI_FIX_CATEGORY_BUG(UIViewController_MyCustomCategory);
  */
 #define RGBACOLOR(r,g,b,a) [UIColor colorWithRed:(r)/255.0f green:(g)/255.0f blue:(b)/255.0f alpha:(a)]
 
-/**
- * A helper macro to keep the interfaces compatiable with pre ARC compilers.
- * Useful when you put nimbus in a library and link it to a GCC LLVM compiler.
- */
-
-#if defined(__has_feature) && __has_feature(objc_arc_weak)
-    #define NI_WEAK weak
-    #define NI_STRONG strong
-#elif defined(__has_feature)  && __has_feature(objc_arc)
-    #define NI_WEAK __unsafe_unretained
-    #define NI_STRONG retain
-#else
-    #define NI_WEAK assign
-    #define NI_STRONG retain
-#endif
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 /**@}*/// End of Preprocessor Macros //////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////

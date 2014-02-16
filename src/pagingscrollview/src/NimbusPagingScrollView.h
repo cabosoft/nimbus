@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,9 +48,6 @@
 /**@}*/
 
 #import "NIPagingScrollView.h"
-#import "NIPagingScrollViewDataSource.h"
-#import "NIPagingScrollViewDelegate.h"
 #import "NIPagingScrollViewPage.h"
-#import "NIPageView.h"
 
 #import "NimbusCore.h"

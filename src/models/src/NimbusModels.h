@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,9 +65,9 @@
  * @code
 NSArray* tableContents =
  [NSArray arrayWithObjects:
-  [NSDictionary dictionaryWithObject:@"Row 1" forKey:@"title"],
-  [NSDictionary dictionaryWithObject:@"Row 2" forKey:@"title"],
-  [NSDictionary dictionaryWithObject:@"Row 3" forKey:@"title"],
+  [NITitleCellObject objectWithTitle:@"Row 1"],
+  [NITitleCellObject objectWithTitle:@"Row 2"],
+  [NITitleCellObject objectWithTitle:@"Row 3"],
   nil];
 
 _model = [[NITableViewModel alloc] initWithListArray:tableContents
@@ -79,12 +79,12 @@ _model = [[NITableViewModel alloc] initWithListArray:tableContents
  * @code
 NSArray* tableContents =
  [NSArray arrayWithObjects:
-  @"Section Title"
-  [NSDictionary dictionaryWithObject:@"Row 1" forKey:@"title"],
-  [NSDictionary dictionaryWithObject:@"Row 2" forKey:@"title"],
+  @"Section Title",
+  [NITitleCellObject objectWithTitle:@"Row 1"],
+  [NITitleCellObject objectWithTitle:@"Row 2"],
 
-  @"Section Title"
-  [NSDictionary dictionaryWithObject:@"Row 3" forKey:@"title"],
+  @"Section Title",
+  [NITitleCellObject objectWithTitle:@"Row 3"],
   nil];
 
 _model = [[NITableViewModel alloc] initWithSectionedArray:tableContents
@@ -385,7 +385,7 @@ typedef enum {
 } AppSort;
 
 // You will create and retain a radio group object for the lifecycle of your controller.
-@property (nonatomic, readwrite, retain) NIRadioGroup* radioGroup;
+@property (nonatomic, retain) NIRadioGroup* radioGroup;
 
 - (void)refreshModel {
   id manual = [NITitleCellObject cellWithTitle:@"Manually"];
@@ -440,7 +440,7 @@ typedef enum {
  *
 @code
 // You will create and retain an actions object for the lifecycle of your controller.
-@property (nonatomic, readwrite, retain) NITableViewActions* actions;
+@property (nonatomic, retain) NITableViewActions* actions;
 
 - (void)refreshModel {
   id about = [NITitleCellObject cellWithTitle:@"About"];

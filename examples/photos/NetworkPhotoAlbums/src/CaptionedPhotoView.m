@@ -1,5 +1,5 @@
 //
-// Copyright 2011 Jeff Verkoeyen
+// Copyright 2011-2014 Jeff Verkoeyen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,26 +19,18 @@
 static UIEdgeInsets kWellPadding = {0}; // see +initialize
 
 @interface CaptionedPhotoView ()
-@property (nonatomic, readwrite, retain) UILabel* captionLabel;
+@property (nonatomic, retain) UILabel* captionLabel;
 @end
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 @implementation CaptionedPhotoView
 
-@synthesize captionWell = _captionWell;
-@synthesize captionLabel = _captionLabel;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 + (void)initialize {
   kWellPadding = UIEdgeInsetsMake(10, 10, 10, 10);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithFrame:(CGRect)frame {
   if ((self = [super initWithFrame:frame])) {
     _captionWell = [[UIView alloc] initWithFrame:self.bounds];
@@ -47,7 +39,7 @@ static UIEdgeInsets kWellPadding = {0}; // see +initialize
 
     _captionLabel = [[UILabel alloc] initWithFrame:self.bounds];
     _captionLabel.backgroundColor = [UIColor clearColor];
-    _captionLabel.lineBreakMode = UILineBreakModeTailTruncation;
+    _captionLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     _captionLabel.numberOfLines = 0;
     _captionLabel.font = [UIFont systemFontOfSize:14];
     _captionLabel.textColor = [UIColor whiteColor];
@@ -69,8 +61,6 @@ static UIEdgeInsets kWellPadding = {0}; // see +initialize
   return self;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)layoutSubviews {
   [super layoutSubviews];
 
@@ -85,13 +75,9 @@ static UIEdgeInsets kWellPadding = {0}; // see +initialize
   self.captionLabel.frame = UIEdgeInsetsInsetRect(self.captionWell.bounds, kWellPadding);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#pragma mark - Public Methods
+#pragma mark - Public
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)setCaption:(NSString *)caption {
   if (_captionLabel.text != caption) {
     _captionLabel.text = caption;
@@ -99,8 +85,6 @@ static UIEdgeInsets kWellPadding = {0}; // see +initialize
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 - (NSString *)caption {
   return _captionLabel.text;
 }

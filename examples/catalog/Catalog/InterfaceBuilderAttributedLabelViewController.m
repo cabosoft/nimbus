@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,13 +48,6 @@
 
 @implementation InterfaceBuilderAttributedLabelViewController
 
-@synthesize scrollView;
-@synthesize nimbusTitle;
-@synthesize label1;
-@synthesize label2;
-@synthesize label3;
-@synthesize label4;
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:@"AttributedLabelMashup" bundle:nil])) {
     self.title = @"Interface Builder";
@@ -65,43 +58,31 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  nimbusTitle.strokeWidth = -3.0;
-  nimbusTitle.strokeColor = [UIColor blackColor];
+  _nimbusTitle.strokeWidth = -3.0;
+  _nimbusTitle.strokeColor = [UIColor blackColor];
 
   // Kerning modifies the spacing between letters.
-  nimbusTitle.textKern = 15.0;
+  _nimbusTitle.textKern = 15.0;
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < NIIOS_6_0
-  label1.textAlignment = UITextAlignmentJustify;
-#else
-  label1.textAlignment = NSTextAlignmentJustified;
-#endif
+  _label1.textAlignment = NSTextAlignmentJustified;
 
-  label2.underlineStyle = kCTUnderlineStyleDouble;
-  label2.underlineStyleModifier = kCTUnderlinePatternDot;
+  _label2.underlineStyle = kCTUnderlineStyleDouble;
+  _label2.underlineStyleModifier = kCTUnderlinePatternDot;
 
-  label3.autoDetectLinks = YES;
-  label3.linkColor = [UIColor purpleColor];
-  label3.highlightedLinkBackgroundColor = [UIColor orangeColor];
-  label3.linksHaveUnderlines = YES;
-  
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < NIIOS_6_0
-  label4.textAlignment = UITextAlignmentJustify;
-#else
-  label4.textAlignment = NSTextAlignmentJustified;
-#endif
-  [label4 setTextColor:[UIColor orangeColor]  range:[label4.text rangeOfString:@"Nimbus"]];
-  [label4 setTextColor:[UIColor redColor]  range:[label4.text rangeOfString:@"accelerates"]];
-  [label4 setFont:[UIFont boldSystemFontOfSize:22] range:[label4.text rangeOfString:@"iOS"]];
-  [label4 setUnderlineStyle:kCTUnderlineStyleSingle modifier:kCTUnderlinePatternDash range:[label4.text rangeOfString:@"documentation"]];
-  [label4 setFont:[UIFont fontWithName:@"MarkerFelt-Wide" size:17] range:[label4.text rangeOfString:@"Nimbus" options:NSBackwardsSearch]];
-  [label4 addLink:[NSURL URLWithString:@"nimbus://custom/url"] range:[label4.text rangeOfString:@"easy"]];
+  _label3.autoDetectLinks = YES;
+  _label3.linkColor = [UIColor purpleColor];
+  _label3.highlightedLinkBackgroundColor = [UIColor orangeColor];
+  _label3.linksHaveUnderlines = YES;
 
-  self.scrollView.contentSize = CGSizeMake(self.view.bounds.size.width, CGRectGetMaxY(label4.frame));
-}
+  _label4.textAlignment = NSTextAlignmentJustified;
+  [_label4 setTextColor:[UIColor orangeColor]  range:[_label4.text rangeOfString:@"Nimbus"]];
+  [_label4 setTextColor:[UIColor redColor]  range:[_label4.text rangeOfString:@"accelerates"]];
+  [_label4 setFont:[UIFont boldSystemFontOfSize:22] range:[_label4.text rangeOfString:@"iOS"]];
+  [_label4 setUnderlineStyle:kCTUnderlineStyleSingle modifier:kCTUnderlinePatternDash range:[_label4.text rangeOfString:@"documentation"]];
+  [_label4 setFont:[UIFont fontWithName:@"MarkerFelt-Wide" size:17] range:[_label4.text rangeOfString:@"Nimbus" options:NSBackwardsSearch]];
+  [_label4 addLink:[NSURL URLWithString:@"nimbus://custom/url"] range:[_label4.text rangeOfString:@"easy"]];
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
+  self.scrollView.contentSize = CGSizeMake(self.view.bounds.size.width, CGRectGetMaxY(_label4.frame));
 }
 
 #pragma mark - NIAttributedLabelDelegate
@@ -110,6 +91,5 @@
   UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Link Selected" message:result.URL.relativeString delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
   [alert show];
 }
-
 
 @end

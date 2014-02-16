@@ -1,5 +1,5 @@
 //
-// Copyright 2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@
 /**
  * A view controller that displays the contents of an in-memory cache.
  *
+ * Requires the [models] feature.
+ *
  * This controller provides useful debugging insights into the contents of an in-memory cache.
  * It presents a simple summary of the contents of the cache, followed by a listing of each
  * object in the cache.
@@ -28,7 +30,7 @@
  * When the cache is a NIImageMemoryCache, the pixel information will also be displayed in the
  * summary and each of the images will be displayed.
  *
- *      @ingroup Overview
+ * @ingroup Overview
  */
 @interface NIOverviewMemoryCacheController : UITableViewController
 
@@ -40,5 +42,5 @@
 /**
  * Initializes a newly allocated cache controller with the given cache object.
  *
- *      @fn NIOverviewImageCacheController::initWithMemoryCache:
+ * @fn NIOverviewImageCacheController::initWithMemoryCache:
  */

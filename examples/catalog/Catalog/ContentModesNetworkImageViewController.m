@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,12 +45,11 @@ static const CGFloat kFramePadding = 10;
 static const CGFloat kImageSpacing = 5;
 
 @interface ContentModesNetworkImageViewController()
-@property (nonatomic, readwrite, copy) NSArray* networkImageViews;
+@property (nonatomic, copy) NSArray* networkImageViews;
 @end
 
 @implementation ContentModesNetworkImageViewController
 
-@synthesize networkImageViews = _networkImageViews;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
@@ -106,6 +105,10 @@ static const CGFloat kImageSpacing = 5;
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  // iOS 7-only.
+  if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+    self.edgesForExtendedLayout = UIRectEdgeNone;
+  }
   self.view.backgroundColor = [UIColor underPageBackgroundColor];
 
   // We only want one network request to be able to fire off at a time because we know all of the
@@ -165,10 +168,6 @@ static const CGFloat kImageSpacing = 5;
 
   // When we rotate we will need to update the layout of all of the image views so that they fit.
   [self layoutImageViews];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-  return NIIsSupportedOrientation(interfaceOrientation);
 }
 
 @end

@@ -1,6 +1,6 @@
 //
 // Copyright 2012 Manu Cornet
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,6 @@
 // Pages that will be displayed in a NIPagingScrollView must implement the NIPagingScrollViewPage
 // protocol.
 @interface SamplePageView : UIView <NIPagingScrollViewPage>
-@property (nonatomic, readwrite, retain) UILabel* label;
+@property (nonatomic, retain) UILabel* label;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 @end

@@ -1,5 +1,6 @@
 //
-// Copyright 2011 Roger Chapman
+// Copyright 2011-2014 NimbusKit
+// Originally created by Roger Chapman
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +35,7 @@
  * - CoreText.framework
  * - QuartzCore.framework
  *
- * Minimum Operating System: <b>iOS 4.0</b>
+ * Minimum Operating System: <b>iOS 6.0</b>
  *
  * Source located in <code>src/attributedlabel/src</code>
  *
@@ -47,11 +48,7 @@
  * NIAttributedLabel is a subclass of UILabel. The attributed label maintains an <a href="http://developer.apple.com/library/ios/#documentation/Cocoa/Reference/Foundation/Classes/NSAttributedString_Class/Reference/Reference.html">NSAttributedString</a>
  * object internally which is used in conjunction with CoreText to draw rich-text labels. A number
  * of helper methods for modifying the text style are provided. If you need to directly modify the
- * internal NSAttributedString you may do so by accessing the @c attributedString property on iOS 4
- * through 5.*.
- *
- *      @attention iOS 6 Beta note: when building for iOS 6 and higher you must use the
- *                 @c attributedText property now provided via UILabel.
+ * internal NSAttributedString you may do so by accessing the @c attributedText property.
  *
 @code
 NIAttributedLabel* label = [[NIAttributedLabel alloc] initWithFrame:CGRectZero];
@@ -93,18 +90,21 @@ label.text = @"Nimbus";
  * @link NIAttributedLabel::dataDetectorTypes dataDetectorTypes@endlink property. By default only
  * urls will be detected.
  *
- *      @attention NIAttributedLabel is not designed to detect html anchor tags (i.e. &lt;a>). If
+ * @attention NIAttributedLabel is not designed to detect html anchor tags (i.e. &lt;a>). If
  *                 you want to attach a URL to a given range of text you must use
  *                 @link NIAttributedLabel::addLink:range: addLink:range:@endlink.
+ *                 You can add links to the attributed string using the attribute
+ *                 NIAttributedLabelLinkAttributeName. The NIAttributedLabelLinkAttributeName value
+ *                 must be a NSTextCheckingResult.
  *
- *  @image html NIAttributedLabel_autoDetectLinksOff.png "Before enabling autoDetectLinks"
+ * @image html NIAttributedLabel_autoDetectLinksOff.png "Before enabling autoDetectLinks"
  *
 @code
 // Enable link detection on the label.
 myLabel.autoDetectLinks = YES;
 @endcode
  *
- *  @image html NIAttributedLabel_autoDetectLinksOn.png "After enabling autoDetectLinks"
+ * @image html NIAttributedLabel_autoDetectLinksOn.png "After enabling autoDetectLinks"
  *
  * Enabling automatic link detection will automatically enable user interation with the label view
  * so that the user can tap the detected links.

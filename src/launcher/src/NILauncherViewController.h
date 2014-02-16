@@ -1,5 +1,5 @@
 //
-// Copyright 2011-2012 Jeff Verkoeyen
+// Copyright 2011-2014 NimbusKit
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@
  *
  * @image html NILauncherViewControllerExample1.png "Example of an NILauncherViewController."
  *
- *      @ingroup NimbusLauncher
+ * @ingroup NimbusLauncher
  */
 @interface NILauncherViewController : UIViewController <NILauncherDelegate, NILauncherDataSource>
 
-@property (nonatomic, readwrite, NI_STRONG) NILauncherView* launcherView;
+@property (nonatomic, strong) NILauncherView* launcherView;
 
 @end
 
@@ -44,5 +44,5 @@
 /**
  * Returns the launcher view managed by the controller object.
  *
- *      @fn NILauncherViewController::launcherView
+ * @fn NILauncherViewController::launcherView
  */
