@@ -391,14 +391,15 @@
       [self.navigationController setNavigationBarHidden:NO animated:NO];
       navigationBarFrame.origin.y = 0;
       self.navigationController.navigationBar.frame = navigationBarFrame;
-      self.navigationController.navigationBar.alpha = 0;
+      self.navigationController.navigationBar.alpha = 1;
       [UIView setAnimationsEnabled:YES];
 
       navigationBarFrame.origin.y = NIStatusBarHeight();
 
     } else {
       navigationBarFrame.origin.y = 0;
-    }
+		self.navigationController.navigationBar.alpha = 0;
+   }
   }
 
   if (self.toolbarIsTranslucent) {
