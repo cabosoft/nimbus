@@ -51,11 +51,11 @@ typedef enum {
 @protocol NINetworkImageOperation <NSObject>
 @required
 @property (readonly, copy) NSString* cacheIdentifier;
-@property (assign) CGRect imageCropRect;
+@property (assign) CGRect theImageCropRect;
 @property (assign) CGSize imageDisplaySize;
 @property (assign) NINetworkImageViewScaleOptions scaleOptions;
 @property (assign) CGInterpolationQuality interpolationQuality;
-@property (assign) UIViewContentMode imageContentMode;
+@property (assign) UIViewContentMode theImageContentMode;
 @property (strong) UIImage* imageCroppedAndSizedForDisplay;
 @end
 
