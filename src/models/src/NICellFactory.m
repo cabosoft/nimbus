@@ -15,6 +15,7 @@
 //
 
 #import "NICellFactory.h"
+#import "NICellFactory+Private.h"
 
 #import "NimbusCore.h"
 
@@ -197,10 +198,6 @@
 
 @end
 
-
-@interface NICellObject()
-@property (nonatomic, assign) Class cellClass;
-@end
 
 
 @implementation NICellObject

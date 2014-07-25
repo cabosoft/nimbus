@@ -24,6 +24,3 @@
 
 @implementation NIPagingScrollViewPage
 @end
-
-@implementation NIPageView
-@end

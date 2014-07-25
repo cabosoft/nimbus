@@ -67,6 +67,85 @@
  */
 
 /**
+ * @defgroup Version-1-2-1 Version 1.2.1 Release
+ * @ingroup Version-1-0-0
+ *
+ * Version 1.2.1 of Nimbus was released on February 21, 2014. This patch version closes some bugs
+ * introduced by changes in 1.1.0 and 1.2.0.
+ *
+ * git log 1.2.0...1.2.1
+ *
+ * <h2>Misc Notes</h2>
+ *
+ * - 9 commits went into this release (git log 1.2.0...1.2.1 --pretty=oneline | wc -l)
+ * - Commits grouped by feature: git log 1.2.0...1.2.1 --pretty=oneline | cut -d' ' -f 2- | sort
+ * - Fixed -Wundef warnings.
+ *
+ * <h2>Attributed Label</h2>
+ *
+ * - <span class="apiDiffBugfix">Bugfix</span> Fixed a linebreak bug introduced in 1.1.0.
+ *
+ * <h2>Models</h2>
+ *
+ * - <span class="apiDiffAdded">Bugfix</span> Restore preexisting designated initializer contracts
+ *   for cell objects. Details available on Github:
+ *   https://github.com/jverkoey/nimbus/commit/377393af109410f99e6b63e4613cfaa209df7f6f
+ *
+ * <h2>Paging Scroll View</h2>
+ *
+ * - Re-added deleted methods as deprecated so that.
+ * - Move NIPageView to a separate header and source so that projects can choose not to import a
+ *   deprecated class.
+ */
+
+/**
+ * @defgroup Version-1-2-0 Version 1.2.0 Release
+ * @ingroup Version-1-0-0
+ *
+ * Version 1.2.0 of Nimbus was released on February 15, 2014. This minor version closes out all
+ * remaining bugs on Github and adds support for loading table view cells from nibs in table view
+ * models (this was meant to go in 1.1.0 and is why this is a minor version bump rather than a
+ * patch version).
+ *
+ * git log 1.1.0...1.2.0
+ *
+ * <h2>Misc Notes</h2>
+ *
+ * - 24 commits went into this release.
+ * - Commits grouped by feature: git log 1.1.0...1.2.0 --pretty=oneline | cut -d' ' -f 2- | sort
+ * - Added support for loading table view cells from nibs with table view models.
+ *
+ * <h2>Attributed Label</h2>
+ *
+ * - <span class="apiDiffAdded">Added</span> @link NIAttributedLabel::tailTruncationString tailTruncationString@endlink.
+ * - <span class="apiDiffAdded">Added</span> support for iOS 7's intrinsicContentSize.
+ * - <span class="apiDiffBugfix">Bugfix</span> Fixed an alignment bug introduced in 1.1.0.
+ * - <span class="apiDiffBugfix">Bugfix</span> Properly apply all label styles when setting plain
+ *   text.
+ *
+ * <h2>CSS</h2>
+ *
+ * - <span class="apiDiffBugfix">Bugfix</span> Use the correct key when working with tableViewCellSeparatorStyle.
+ *
+ * <h2>Models</h2>
+ *
+ * - <span class="apiDiffAdded">Added</span> @link NINibCellObject NINibCellObject@endlink protocol
+ *   for loading table view cells from nibs.
+ *
+ * <h2>Network Image</h2>
+ *
+ * - <span class="apiDiffBugfix">Bugfix</span> Now more aggressively discards canceled operations.
+ * - <span class="apiDiffBugfix">Bugfix</span> Now uses the cropRect in the cache key.
+ *
+ * <h2>Web Controller</h2>
+ *
+ * - <span class="apiDiffBugfix">Bugfix</span> Now adds the toolbar above the webview so that the
+ *   toolbar's border is visible.
+ * - <span class="apiDiffAdded">Added</span> @link NIWebController::toolbar toolbar@endlink property
+ *   to allow for customizing the toolbar.
+ */
+
+/**
  * @defgroup Version-1-1-0 Version 1.1.0 Release
  * @ingroup Version-1-0-0
  *
@@ -81,10 +160,11 @@
  * <h2>Misc Notes</h2>
  *
  * - 400 commits went into this release.
- * - Commits grouped by feature: git log 1.0.0...master --pretty=oneline | cut -d' ' -f 2- | sort
+ * - Commits grouped by feature: git log 1.0.0...1.1.0 --pretty=oneline | cut -d' ' -f 2- | sort
  * - iOS 7 support throughout all of the features.
  * - Dropped iOS 5 support.
  * - Massive stylistic changes throughout the codebase.
+ * - Added support for loading collection view cells from nibs with collection view models.
  *
  * <h2>Attributed Label</h2>
  *
@@ -232,7 +312,6 @@
  <a href="https://github.com/jverkoey/nimbus/pull/505">505</a>,
  <a href="https://github.com/jverkoey/nimbus/pull/506">506</a>, and
  <a href="https://github.com/jverkoey/nimbus/pull/507">507</a>.
- *
  */
 
 /**
