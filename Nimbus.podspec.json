@@ -5,6 +5,7 @@
   "summary": "An iOS framework whose growth is bounded by O(documentation).",
   "homepage": "http://nimbuskit.info",
   "documentation_url": "http://latest.docs.nimbuskit.info",
+ 
   "authors": {
     "Jeff Verkoeyen": "jverkoey@gmail.com",
     "Bubnov Slavik": "bubnovslavik@gmail.com",
