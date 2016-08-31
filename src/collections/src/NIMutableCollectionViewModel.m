@@ -121,6 +121,14 @@
   return section;
 }
 
+- (void)_setSectionsWithArray:(NSArray *)sectionsArray {
+  if ([sectionsArray isKindOfClass:[NSMutableArray class]]) {
+    self.sections = (NSMutableArray *)sectionsArray;
+  } else {
+    self.sections = [sectionsArray mutableCopy];
+  }
+}
+
 @end
 
 
@@ -131,7 +139,7 @@
   NIDASSERT([self.rows isKindOfClass:[NSMutableArray class]] || nil == self.rows);
 
   self.rows = nil == self.rows ? [NSMutableArray array] : self.rows;
-  return (NSMutableArray *)self.rows;
+  return [self.rows mutableCopy];
 }
 
 @end
