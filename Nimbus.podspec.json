@@ -1,6 +1,6 @@
 {
   "name": "Nimbus",
-  "version": "1.2.2-Cabo",
+  "version": "1.2.2",
   "license": "Apache License, Version 2.0",
   "summary": "An iOS framework whose growth is bounded by O(documentation).",
   "homepage": "http://nimbuskit.info",
