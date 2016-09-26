@@ -1,6 +1,6 @@
 {
   "name": "Nimbus",
-  "version": "1.2.1-Cabo",
+  "version": "1.2.2-Cabo",
   "license": "Apache License, Version 2.0",
   "summary": "An iOS framework whose growth is bounded by O(documentation).",
   "homepage": "http://nimbuskit.info",
@@ -21,7 +21,7 @@
   },
   "source": {
     "git": "https://github.com/cabosoft/nimbus.git",
-    "tag": "1.2.1-Cabo"
+    "tag": "1.2.2-Cabo"
   },
   "description": "Nimbus is an iOS framework whose feature set grows only as fast as its documentation. By focusing on documentation first and features second, Nimbus hopes to be a framework that accelerates the development process of any application by being easy to use and simple to understand.",
   "platforms": {
