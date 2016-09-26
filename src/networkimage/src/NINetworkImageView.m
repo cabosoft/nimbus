@@ -90,14 +90,14 @@
   return [self initWithImage:nil];
 }
 
-- (NSString *)cacheKeyForCacheIdentifier:(NSString *)cacheIdentifier
+- (NSString *)cacheKeyForCacheIdentifier:(NSString *)cacheID
                                imageSize:(CGSize)imageSize
                                 cropRect:(CGRect)cropRect
                              contentMode:(UIViewContentMode)contentMode
                             scaleOptions:(NINetworkImageViewScaleOptions)scaleOptions {
-  NIDASSERT(NIIsStringWithAnyText(cacheIdentifier));
+  NIDASSERT(NIIsStringWithAnyText(cacheID));
 
-  NSString* cacheKey = cacheIdentifier;
+  NSString* cacheKey = cacheID;
 
   // Append the size to the key. This allows us to differentiate cache keys by image dimension.
   // If the display size ever changes, we want to ensure that we're fetching the correct image
@@ -129,7 +129,7 @@
 }
 
 - (void)_didFinishLoadingWithImage:(UIImage *)image
-                   cacheIdentifier:(NSString *)cacheIdentifier
+                   cacheID:(NSString *)cacheID
                        displaySize:(CGSize)displaySize
                           cropRect:(CGRect)cropRect
                        contentMode:(UIViewContentMode)contentMode
@@ -137,7 +137,7 @@
                     expirationDate:(NSDate *)expirationDate {
   // Store the result image in the memory cache.
   if (nil != self.imageMemoryCache && nil != image) {
-    NSString* cacheKey = [self cacheKeyForCacheIdentifier:cacheIdentifier
+    NSString* cacheKey = [self cacheKeyForCacheIdentifier:cacheID
                                                 imageSize:displaySize
                                                  cropRect:cropRect
                                               contentMode:contentMode
@@ -188,7 +188,7 @@
     return;
   }
   [self _didFinishLoadingWithImage:operation.imageCroppedAndSizedForDisplay
-                   cacheIdentifier:operation.cacheIdentifier
+                   cacheID:operation.cacheID
                        displaySize:operation.imageDisplaySize
                           cropRect:operation.theImageCropRect
                        contentMode:operation.theImageContentMode
@@ -345,7 +345,7 @@
         // Only keep this result if it's for the most recent request.
         if ([blockCacheKey isEqualToString:operation.userInfo[@"cacheKey"]]) {
           [self _didFinishLoadingWithImage:responseObject
-                           cacheIdentifier:pathToNetworkImage
+                           cacheID:pathToNetworkImage
                                displaySize:displaySize
                                   cropRect:cropRect
                                contentMode:contentMode
@@ -390,7 +390,7 @@
 
     // Attempt to load the image from memory first.
     if (nil != self.imageMemoryCache) {
-      NSString* cacheKey = [self cacheKeyForCacheIdentifier:operation.cacheIdentifier
+      NSString* cacheKey = [self cacheKeyForCacheIdentifier:operation.cacheID
                                                   imageSize:displaySize
                                                    cropRect:cropRect
                                                 contentMode:contentMode
