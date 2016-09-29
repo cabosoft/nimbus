@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   }
   s.social_media_url   = "http://twitter.com/NimbusKit"
   s.platform     = :ios, "8.0"
-  s.source       = { :git => "https://github.com/cabosoft/nimbus.git", "tag": "1.3.1-Cabo" }
+  s.source       = { :git => "https://github.com/cabosoft/nimbus.git", :tag => "1.3.1-Cabo" }
   s.requires_arc = true
 
   s.subspec 'AttributedLabel' do |ss|
