@@ -87,6 +87,7 @@
   CGSize _photoDimensions;
 
   // Configurable State
+  BOOL _zoomToFit;
   BOOL _zoomingIsEnabled;
   BOOL _zoomingAboveOriginalSizeIsEnabled;
 
@@ -98,6 +99,7 @@
 - (id)initWithFrame:(CGRect)frame {
   if ((self = [super initWithFrame:frame])) {
     // Default configuration.
+    self.zoomToFit = YES;
     self.zoomingIsEnabled = YES;
     self.zoomingAboveOriginalSizeIsEnabled = YES;
     self.doubleTapToZoomIsEnabled = YES;
@@ -221,8 +223,25 @@
   _scrollView.contentSize = self.bounds.size;
 }
 
+- (void) scaleToFit
+{
+	if ((self.zoomToFit) && (_imageView.image != nil)) {
+		CGSize imageSize = _imageView.image.size;
+		CGSize boundsSize = _scrollView.frame.size;
+
+		CGFloat fitScale = [self scaleForSize: imageSize
+															   boundsSize: boundsSize
+														  useMinimalScale: YES];
+
+		_scrollView.zoomScale = NIBoundf(fitScale, _scrollView.minimumZoomScale, _scrollView.maximumZoomScale);
+	} else {
+		_scrollView.zoomScale = _scrollView.minimumZoomScale;
+	}
+}
+
+
 - (void)pageDidDisappear {
-  _scrollView.zoomScale = _scrollView.minimumZoomScale;
+	[self scaleToFit];
 }
 
 #pragma mark - Public
@@ -252,7 +271,7 @@
   [self setMaxMinZoomScalesForCurrentBounds];
 
   // Start off with the image fully-visible on the screen.
-  _scrollView.zoomScale = _scrollView.minimumZoomScale;
+  [self scaleToFit];
 
   [self setNeedsLayout];
 }
@@ -278,7 +297,7 @@
     [self setMaxMinZoomScalesForCurrentBounds];
 
     // Fit the image on screen.
-    _scrollView.zoomScale = _scrollView.minimumZoomScale;
+	[self scaleToFit];
 
     // Disable zoom bouncing if zooming is disabled, otherwise the view will allow pinching.
     _scrollView.bouncesZoom = enabled;

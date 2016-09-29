@@ -183,6 +183,15 @@ extern "C" {
  * @returns YES if the device is an iPad.
  */
 BOOL NIIsPad(void);
+    
+    
+/**
+ * Checks whether the device the app is currently running on is an 4" iPhone or not.
+ *
+ * @return YES if the device is 4" iPhone.
+ */
+BOOL NIIs4Inch();
+
 
 /**
  * Checks whether the device the app is currently running on is an

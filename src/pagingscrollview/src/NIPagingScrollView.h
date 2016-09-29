@@ -20,7 +20,8 @@
 
 #import "NimbusCore.h"
 
-/**
+/**- (NSMutableSet *)visiblePages {
+
  * numberOfPages will be this value until reloadData is called.
  */
 extern const NSInteger NIPagingScrollViewUnknownNumberOfPages;

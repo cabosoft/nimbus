@@ -84,6 +84,34 @@
   return self;
 }
 
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// dded to support storyboarding
+-(void)awakeFromNib
+{
+	[super awakeFromNib];
+    // Default Configuration Settings
+    self.toolbarIsTranslucent = YES;
+    self.hidesChromeWhenScrolling = YES;
+    self.chromeCanBeHidden = YES;
+    self.animateMovingToNextAndPreviousPhotos = NO;
+    if ([self respondsToSelector:@selector(setAutomaticallyAdjustsScrollViewInsets:)]) {
+      self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+    
+    // The scrubber is better use of the extra real estate on the iPad.
+    // If you ask me, though, the scrubber works pretty well on the iPhone too. It's up
+    // to you if you want to use it in your own implementations.
+    self.scrubberIsEnabled = NIIsPad();
+    
+    // Allow the photos to display beneath the status bar.
+    self.wantsFullScreenLayout = YES;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)addTapGestureToView {
   if ([self isViewLoaded]) {
     if (nil == _tapGesture) {
@@ -363,14 +391,15 @@
       [self.navigationController setNavigationBarHidden:NO animated:NO];
       navigationBarFrame.origin.y = 0;
       self.navigationController.navigationBar.frame = navigationBarFrame;
-      self.navigationController.navigationBar.alpha = 0;
+      self.navigationController.navigationBar.alpha = 1;
       [UIView setAnimationsEnabled:YES];
 
       navigationBarFrame.origin.y = NIStatusBarHeight();
 
     } else {
       navigationBarFrame.origin.y = 0;
-    }
+		self.navigationController.navigationBar.alpha = 0;
+   }
   }
 
   if (self.toolbarIsTranslucent) {
@@ -378,7 +407,6 @@
   }
   if (nil != self.navigationController.navigationBar) {
     self.navigationController.navigationBar.frame = navigationBarFrame;
-    self.navigationController.navigationBar.alpha = (isVisible ? 1 : 0);
   }
 
   if (animated) {

@@ -63,7 +63,10 @@
 
   // Allow the cell to configure itself with the object's information.
   if ([cell respondsToSelector:@selector(shouldUpdateCellWithObject:)]) {
-    [(id<NICell>)cell shouldUpdateCellWithObject:object];
+      if ([(id<NICell>)cell shouldUpdateCellWithObject:object]) {
+          [cell setNeedsLayout];
+          [cell setNeedsDisplay];
+      }
   }
 
   return cell;
@@ -81,9 +84,12 @@
   cell = [tableView dequeueReusableCellWithIdentifier:identifier forIndexPath:indexPath];
 
   // Allow the cell to configure itself with the object's information.
-  if ([cell respondsToSelector:@selector(shouldUpdateCellWithObject:)]) {
-    [(id<NICell>)cell shouldUpdateCellWithObject:object];
-  }
+	if ([cell respondsToSelector:@selector(shouldUpdateCellWithObject:)]) {
+		if ([(id<NICell>)cell shouldUpdateCellWithObject:object]) {
+			[cell setNeedsLayout];
+			[cell setNeedsDisplay];
+		}
+	}
 
   return cell;
 }

@@ -32,6 +32,7 @@
 
 #pragma mark Configuring Functionality
 
+@property (nonatomic, readwrite, assign, getter=isZoomingEnabled) BOOL zoomToFit; // default: yes
 @property (nonatomic, assign, getter=isZoomingEnabled) BOOL zoomingIsEnabled; // default: yes
 @property (nonatomic, assign, getter=isZoomingAboveOriginalSizeEnabled) BOOL zoomingAboveOriginalSizeIsEnabled; // default: yes
 @property (nonatomic, assign, getter=isDoubleTapToZoomEnabled) BOOL doubleTapToZoomIsEnabled; // default: yes

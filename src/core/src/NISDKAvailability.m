@@ -34,6 +34,15 @@ BOOL NIIsPad(void) {
   return isPad > 0;
 }
 
+BOOL NIIs4Inch() {
+#ifdef __IPHONE_6_0
+    CGRect screenFrame = [[UIScreen mainScreen] applicationFrame];
+    return (!NIIsPad() && (screenFrame.size.height > 480));
+#else
+    return NO;
+#endif
+}
+
 BOOL NIIsPhone(void) {
   static NSInteger isPhone = -1;
   if (isPhone < 0) {
