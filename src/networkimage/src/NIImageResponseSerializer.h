@@ -14,8 +14,7 @@
 // limitations under the License.
 //
 
-#import "AFURLResponseSerialization.h"
-
+#import <AFNetworking/AFURLResponseSerialization.h>
 #import "NINetworkImageView.h" // For NINetworkImageViewScaleOptions.
 
 /**
