@@ -4,5 +4,5 @@ project 'CSSDemo.xcodeproj'
 # platform :ios, '9.0'
 
 target 'CSSDemo' do
-  pod 'AFNetworking', '~> 3.0'
+	pod 'Nimbus', :path => '../../'
 end

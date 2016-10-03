@@ -14,13 +14,69 @@ PODS:
   - AFNetworking/Serialization (3.1.0)
   - AFNetworking/UIKit (3.1.0):
     - AFNetworking/NSURLSession
+  - Nimbus (1.3.1):
+    - Nimbus/AttributedLabel (= 1.3.1)
+    - Nimbus/Badge (= 1.3.1)
+    - Nimbus/Collections (= 1.3.1)
+    - Nimbus/Core (= 1.3.1)
+    - Nimbus/CSS (= 1.3.1)
+    - Nimbus/Interapp (= 1.3.1)
+    - Nimbus/Launcher (= 1.3.1)
+    - Nimbus/Models (= 1.3.1)
+    - Nimbus/NetworkControllers (= 1.3.1)
+    - Nimbus/NetworkImage (= 1.3.1)
+    - Nimbus/Overview (= 1.3.1)
+    - Nimbus/PagingScrollView (= 1.3.1)
+    - Nimbus/Photos (= 1.3.1)
+    - Nimbus/Textfield (= 1.3.1)
+    - Nimbus/WebController (= 1.3.1)
+  - Nimbus/AttributedLabel (1.3.1):
+    - Nimbus/Core
+  - Nimbus/Badge (1.3.1):
+    - Nimbus/Core
+  - Nimbus/Collections (1.3.1):
+    - Nimbus/Core
+  - Nimbus/Core (1.3.1)
+  - Nimbus/CSS (1.3.1):
+    - AFNetworking (~> 3.0)
+    - Nimbus/Core
+    - Nimbus/Textfield
+  - Nimbus/Interapp (1.3.1):
+    - Nimbus/Core
+  - Nimbus/Launcher (1.3.1):
+    - Nimbus/Core
+    - Nimbus/PagingScrollView
+  - Nimbus/Models (1.3.1):
+    - Nimbus/Core
+  - Nimbus/NetworkControllers (1.3.1):
+    - Nimbus/Core
+  - Nimbus/NetworkImage (1.3.1):
+    - AFNetworking (~> 3.0)
+    - Nimbus/Core
+  - Nimbus/Overview (1.3.1):
+    - Nimbus/Core
+    - Nimbus/Models
+  - Nimbus/PagingScrollView (1.3.1):
+    - Nimbus/Core
+  - Nimbus/Photos (1.3.1):
+    - Nimbus/Core
+    - Nimbus/PagingScrollView
+  - Nimbus/Textfield (1.3.1):
+    - Nimbus/Core
+  - Nimbus/WebController (1.3.1):
+    - Nimbus/Core
 
 DEPENDENCIES:
-  - AFNetworking (~> 3.0)
+  - Nimbus (from `../../`)
+
+EXTERNAL SOURCES:
+  Nimbus:
+    :path: "../../"
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  Nimbus: 72877627138214d3e2fa3a42692ef2ef63c2443a
 
-PODFILE CHECKSUM: 9b205c570653e53e89360b52bf8992fa9ec18dbc
+PODFILE CHECKSUM: 465a169abcd7828705be45fef85b48d2b1b2a7bb
 
-COCOAPODS: 1.0.0
+COCOAPODS: 1.1.0.rc.2
