@@ -22,13 +22,68 @@
 #import "AFNetworking.h"
 #import "NIImageProcessing.h"
 #import "NIImageResponseSerializer.h"
+#import <objc/runtime.h>
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
 #error "Nimbus requires ARC support."
 #endif
 
+
+@interface NSObject (NSURLSessionDataTask)
+@property (strong, nullable)  NSDictionary * userInfo;
+@end
+
+@implementation NSObject (BSYSyncManager)
+	
+	static void* userInfoKey = "userInfo";
+	-(void) setUserInfo:(id)value
+	{
+		value = ^(id v){ return v; }(value);
+		objc_AssociationPolicy policy = [value conformsToProtocol:@protocol(NSCopying)] ? OBJC_ASSOCIATION_COPY : OBJC_ASSOCIATION_RETAIN;
+		
+		@synchronized(self)
+		{
+			{
+				SEL __checkSel = NSSelectorFromString(@"willChangeValueForKey:");
+				if ([self respondsToSelector:__checkSel])
+				{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+					[self performSelector:__checkSel withObject:@"userInfo"];
+#pragma clang diagnostic pop
+				}
+			}
+			
+			objc_setAssociatedObject(self, userInfoKey, value, policy);
+			
+			{
+				SEL __checkSel = NSSelectorFromString(@"didChangeValueForKey:");
+				if ([self respondsToSelector:__checkSel])
+				{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+					[self performSelector:__checkSel withObject:@"userInfo"];
+#pragma clang diagnostic pop
+				}
+			};
+		}
+	}
+	
+	-(id) userInfo
+	{
+		id value = ((void*)0);
+		
+		@synchronized(self)
+		{
+			value = objc_getAssociatedObject(self, userInfoKey);
+		};
+		
+		return ^(id v){ return v; }(value);
+	}
+@end
+
 @interface NINetworkImageView()
-@property (nonatomic, strong) NSOperation* operation;
+@property (nonatomic, strong) NSURLSessionTask *task;
 @end
 
 
@@ -37,13 +92,8 @@
 
 
 - (void)cancelOperation {
-  if ([self.operation isKindOfClass:[NIOperation class]]) {
-    NIOperation* request = (NIOperation *)self.operation;
-    // Clear the delegate so that we don't receive a didFail notification when we cancel the
-    // operation.
-    request.delegate = nil;
-  }
-  [self.operation cancel];
+  [self.task cancel];
+  self.task = nil;
 }
 
 - (void)dealloc {
@@ -56,7 +106,6 @@
   self.interpolationQuality = kCGInterpolationDefault;
 
   self.imageMemoryCache = [Nimbus imageMemoryCache];
-  self.networkOperationQueue = [Nimbus networkOperationQueue];
 }
 
 - (id)initWithImage:(UIImage *)image {
@@ -157,7 +206,7 @@
     [self setImage:self.initialImage];
   }
 
-  self.operation = nil;
+  self.task = nil;
 
   if ([self.delegate respondsToSelector:@selector(networkImageView:didLoadImage:)]) {
     [self.delegate networkImageView:self didLoadImage:self.image];
@@ -167,37 +216,13 @@
 }
 
 - (void)_didFailToLoadWithError:(NSError *)error {
-  self.operation = nil;
+  self.task = nil;
 
   if ([self.delegate respondsToSelector:@selector(networkImageView:didFailWithError:)]) {
     [self.delegate networkImageView:self didFailWithError:error];
   }
 
   [self networkImageViewDidFailWithError:error];
-}
-
-#pragma mark - NIOperationDelegate
-
-
-- (void)nimbusOperationDidStart:(NIOperation *)operation {
-  [self _didStartLoading];
-}
-
-- (void)nimbusOperationDidFinish:(NIOperation<NINetworkImageOperation> *)operation {
-  if (operation.isCancelled || operation != self.operation) {
-    return;
-  }
-  [self _didFinishLoadingWithImage:operation.imageCroppedAndSizedForDisplay
-                   cacheIdentifier:operation.cacheIdentifier
-                       displaySize:operation.imageDisplaySize
-                          cropRect:operation.theImageCropRect
-                       contentMode:operation.theImageContentMode
-                      scaleOptions:operation.scaleOptions
-                    expirationDate:[self expirationDate]];
-}
-
-- (void)nimbusOperationDidFail:(NIOperation *)operation withError:(NSError *)error {
-  [self _didFailToLoadWithError:error];
 }
 
 #pragma mark - Subclassing
@@ -254,177 +279,123 @@
 }
 
 - (void)setPathToNetworkImage:(NSString *)pathToNetworkImage forDisplaySize:(CGSize)displaySize contentMode:(UIViewContentMode)contentMode cropRect:(CGRect)cropRect {
-  [self cancelOperation];
+	[self cancelOperation];
 
-  if (NIIsStringWithAnyText(pathToNetworkImage)) {
-    NSURL* url = nil;
+	if (NIIsStringWithAnyText(pathToNetworkImage)) {
+		NSURL* url = nil;
 
-    // Check for file URLs.
-    if ([pathToNetworkImage hasPrefix:@"/"]) {
-      // If the url starts with / then it's likely a file URL, so treat it accordingly.
-      url = [NSURL fileURLWithPath:pathToNetworkImage];
+		// Check for file URLs.
+		if ([pathToNetworkImage hasPrefix:@"/"]) {
+		  // If the url starts with / then it's likely a file URL, so treat it accordingly.
+		  url = [NSURL fileURLWithPath:pathToNetworkImage];
 
-    } else {
-      // Otherwise we assume it's a regular URL.
-      url = [NSURL URLWithString:[pathToNetworkImage stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    }
+		} else {
+		  // Otherwise we assume it's a regular URL.
+		  url = [NSURL URLWithString:[pathToNetworkImage stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+		}
 
-    // If the URL failed to be created, there's not much we can do here.
-    if (nil == url) {
-      return;
-    }
-    // We explicitly do not allow negative display sizes. Check the call stack to figure
-    // out who is providing a negative display size. It's possible that displaySize is an
-    // uninitialized CGSize structure.
-    NIDASSERT(displaySize.width >= 0);
-    NIDASSERT(displaySize.height >= 0);
-    
-    // If an invalid display size IS provided, use the image view's frame instead.
-    if (0 >= displaySize.width || 0 >= displaySize.height) {
-      displaySize = self.frame.size;
-    }
-    
-    UIImage* image = nil;
-    
-    // Attempt to load the image from memory first.
-    NSString* cacheKey = nil;
-    if (nil != self.imageMemoryCache) {
-      cacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
-                                        imageSize:displaySize
-                                         cropRect:cropRect
-                                      contentMode:contentMode
-                                     scaleOptions:self.scaleOptions];
-      image = [self.imageMemoryCache objectWithName:cacheKey];
-    }
+		// If the URL failed to be created, there's not much we can do here.
+		if (nil == url) {
+		  return;
+		}
+		// We explicitly do not allow negative display sizes. Check the call stack to figure
+		// out who is providing a negative display size. It's possible that displaySize is an
+		// uninitialized CGSize structure.
+		NIDASSERT(displaySize.width >= 0);
+		NIDASSERT(displaySize.height >= 0);
+		
+		// If an invalid display size IS provided, use the image view's frame instead.
+		if (0 >= displaySize.width || 0 >= displaySize.height) {
+		  displaySize = self.frame.size;
+		}
+		
+		UIImage* image = nil;
+		
+		// Attempt to load the image from memory first.
+		NSString* cacheKey = nil;
+		if (nil != self.imageMemoryCache) {
+		  cacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
+											imageSize:displaySize
+											 cropRect:cropRect
+										  contentMode:contentMode
+										 scaleOptions:self.scaleOptions];
+		  image = [self.imageMemoryCache objectWithName:cacheKey];
+		}
 
-    if (nil != image) {
-      // We successfully loaded the image from memory.
-      [self setImage:image];
-      
-      if ([self.delegate respondsToSelector:@selector(networkImageView:didLoadImage:)]) {
-        [self.delegate networkImageView:self didLoadImage:self.image];
-      }
-      
-      [self networkImageViewDidLoadImage:image];
+		if (nil != image) {
+		  // We successfully loaded the image from memory.
+		  [self setImage:image];
+		  
+		  if ([self.delegate respondsToSelector:@selector(networkImageView:didLoadImage:)]) {
+			[self.delegate networkImageView:self didLoadImage:self.image];
+		  }
+		  
+		  [self networkImageViewDidLoadImage:image];
 
-    } else {
-      if (!self.sizeForDisplay) {
-        displaySize = CGSizeZero;
-        contentMode = UIViewContentModeScaleToFill;
-      }
+		} else {
+		  if (!self.sizeForDisplay) {
+			displaySize = CGSizeZero;
+			contentMode = UIViewContentModeScaleToFill;
+		  }
 
-      NSURLRequest *request = [NSURLRequest requestWithURL:url];
+		AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+			
+		@synchronized (manager) {
+		  NIImageResponseSerializer* serializer = [NIImageResponseSerializer serializer];
+		  // We handle image scaling ourselves in the image processing method, so we need to disable
+		  // AFNetworking from doing so as well.
+		  serializer.imageScale = 1;
+		  serializer.contentMode = contentMode;
+		  serializer.cropRect = cropRect;
+		  serializer.displaySize = displaySize;
+		  serializer.scaleOptions = self.scaleOptions;
+		  serializer.interpolationQuality = self.interpolationQuality;
+			
+		  manager.responseSerializer = [AFImageResponseSerializer serializer];
 
-      AFHTTPRequestOperation* requestOperation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+		  NSString* originalCacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
+															  imageSize:displaySize
+															   cropRect:cropRect
+															contentMode:contentMode
+														   scaleOptions:self.scaleOptions];
+			
+		  NSURLSessionDataTask* task = [manager GET:url.absoluteString parameters:nil
+			progress:^(NSProgress * _Nonnull progres) {
+				if ([self.delegate respondsToSelector:@selector(networkImageView:readBytes:totalBytes:)]) {
+					[self.delegate networkImageView:self readBytes:progres.completedUnitCount totalBytes:progres.totalUnitCount];
+				}
+			}
+										
+			success:^(NSURLSessionTask *task, id responseObject) {
+				NSString* blockCacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
+												imageSize:displaySize
+												cropRect:cropRect
+												contentMode:contentMode
+												scaleOptions:self.scaleOptions];
 
-      NIImageResponseSerializer* serializer = [NIImageResponseSerializer serializer];
-      // We handle image scaling ourselves in the image processing method, so we need to disable
-      // AFNetworking from doing so as well.
-      serializer.imageScale = 1;
-      serializer.contentMode = contentMode;
-      serializer.cropRect = cropRect;
-      serializer.displaySize = displaySize;
-      serializer.scaleOptions = self.scaleOptions;
-      serializer.interpolationQuality = self.interpolationQuality;
-      requestOperation.responseSerializer = serializer;
+				// Only keep this result if it's for the most recent request.
+				if ([blockCacheKey isEqualToString:task.userInfo[@"cacheKey"]]) {
+					[self _didFinishLoadingWithImage:responseObject
+							   cacheIdentifier:pathToNetworkImage
+								   displaySize:displaySize
+									  cropRect:cropRect
+								   contentMode:contentMode
+								  scaleOptions:self.scaleOptions
+								expirationDate:[self expirationDate]];
+				}
 
-      NSString* originalCacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
-                                                          imageSize:displaySize
-                                                           cropRect:cropRect
-                                                        contentMode:contentMode
-                                                       scaleOptions:self.scaleOptions];
-      requestOperation.userInfo = @{@"cacheKey":originalCacheKey};
+			}
+			failure:^(NSURLSessionTask *operation, NSError *error) {
+			 [self _didFailToLoadWithError:error];
+		  }];
 
-      [requestOperation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSString* blockCacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
-                                                         imageSize:displaySize
-                                                          cropRect:cropRect
-                                                       contentMode:contentMode
-                                                      scaleOptions:self.scaleOptions];
+		  task.userInfo = @{@"cacheKey":originalCacheKey};
+		  self.task = task;
 
-        // Only keep this result if it's for the most recent request.
-        if ([blockCacheKey isEqualToString:operation.userInfo[@"cacheKey"]]) {
-          [self _didFinishLoadingWithImage:responseObject
-                           cacheIdentifier:pathToNetworkImage
-                               displaySize:displaySize
-                                  cropRect:cropRect
-                               contentMode:contentMode
-                              scaleOptions:self.scaleOptions
-                            expirationDate:[self expirationDate]];
-        }
-
-      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-         [self _didFailToLoadWithError:error];
-      }];
-
-      [requestOperation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
-          if ([self.delegate respondsToSelector:@selector(networkImageView:readBytes:totalBytes:)]) {
-              [self.delegate networkImageView:self readBytes:totalBytesRead totalBytes:totalBytesExpectedToRead];
-          }
-      }];
-
-      self.operation = requestOperation;
-
-      [self _didStartLoading];
-      [self.networkOperationQueue addOperation:requestOperation];
-    }
-  }
-}
-
-- (void)setNetworkImageOperation:(NIOperation<NINetworkImageOperation> *)operation forDisplaySize:(CGSize)displaySize contentMode:(UIViewContentMode)contentMode cropRect:(CGRect)cropRect {
-  [self cancelOperation];
-
-  if (nil != operation) {
-    // We explicitly do not allow negative display sizes. Check the call stack to figure
-    // out who is providing a negative display size. It's possible that displaySize is an
-    // uninitialized CGSize structure.
-    NIDASSERT(displaySize.width >= 0);
-    NIDASSERT(displaySize.height >= 0);
-
-    // If an invalid display size IS provided, use the image view's frame instead.
-    if (0 >= displaySize.width || 0 >= displaySize.height) {
-      displaySize = self.frame.size;
-    }
-
-    UIImage* image = nil;
-
-    // Attempt to load the image from memory first.
-    if (nil != self.imageMemoryCache) {
-      NSString* cacheKey = [self cacheKeyForCacheIdentifier:operation.cacheIdentifier
-                                                  imageSize:displaySize
-                                                   cropRect:cropRect
-                                                contentMode:contentMode
-                                               scaleOptions:self.scaleOptions];
-      image = [self.imageMemoryCache objectWithName:cacheKey];
-    }
-
-    if (nil != image) {
-      // We successfully loaded the image from memory.
-      [self setImage:image];
-
-      if ([self.delegate respondsToSelector:@selector(networkImageView:didLoadImage:)]) {
-        [self.delegate networkImageView:self didLoadImage:self.image];
-      }
-
-      [self networkImageViewDidLoadImage:image];
-
-    } else {
-      // Unable to load the image from memory, so let's fire off the operation now.
-      operation.delegate = self;
-
-      operation.theImageCropRect = cropRect;
-      operation.scaleOptions = self.scaleOptions;
-      operation.interpolationQuality = self.interpolationQuality;
-      if (self.sizeForDisplay) {
-        operation.imageDisplaySize = displaySize;
-        operation.theImageContentMode = contentMode;
-      }
-
-      self.operation = operation;
-
-      [self.networkOperationQueue addOperation:self.operation];
-    }
-  }
+		  [self _didStartLoading];
+		}
+	  }
+	}
 }
 
 - (void)prepareForReuse {
@@ -449,16 +420,7 @@
 }
 
 - (BOOL)isLoading {
-  return [self.operation isExecuting];
-}
-
-- (void)setNetworkOperationQueue:(NSOperationQueue *)queue {
-  // Don't allow a nil network operation queue.
-  NIDASSERT(nil != queue);
-  if (nil == queue) {
-    queue = [Nimbus networkOperationQueue];
-  }
-  _networkOperationQueue = queue;
+  return self.task.state == NSURLSessionTaskStateRunning;
 }
 
 @end

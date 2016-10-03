@@ -43,9 +43,7 @@
  * cap the cache at something reasonable.
  */
 @interface NetworkPhotoAlbumViewController : NIToolbarPhotoViewController {
-@private
-  NSOperationQueue* _queue;
-  
+@private  
   NSMutableSet* _activeRequests;
 
   NIImageMemoryCache* _highQualityImageCache;

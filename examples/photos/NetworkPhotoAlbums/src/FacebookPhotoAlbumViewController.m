@@ -47,8 +47,8 @@
   }
 }
 
-- (void (^)(AFHTTPRequestOperation *operation, id JSON))blockForAlbumProcessing {
-  return ^(AFHTTPRequestOperation *operation, id object) {
+- (void (^)(NSURLSessionTask *task, id JSON))blockForAlbumProcessing {
+  return ^(NSURLSessionTask *task, id object) {
     NSArray* data = [object objectForKey:@"data"];
     
     NSMutableArray* photoInformation = [NSMutableArray arrayWithCapacity:[data count]];
@@ -108,23 +108,26 @@
 
 - (void)loadAlbumInformation {
   NSString* albumURLPath = [NSString stringWithFormat:
-                            @"http://graph.facebook.com/%@/photos?limit=200",
+                            @"https://graph.facebook.com/%@/photos?limit=200",
                             self.facebookAlbumId];
 
   // Nimbus processors allow us to perform complex computations on a separate thread before
   // returning the object to the main thread. This is useful here because we perform sorting
   // operations and pruning on the results.
   NSURL* url = [NSURL URLWithString:albumURLPath];
-  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
-  
-  // Facebook albums are painfully slow to load if they have a lot of comments. Even more
-  // frustrating is that you can't ask *not* to receive the comments from the graph API.
-  request.timeoutInterval = 200;
+//  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
+//  
+//  // Facebook albums are painfully slow to load if they have a lot of comments. Even more
+//  // frustrating is that you can't ask *not* to receive the comments from the graph API.
+//  request.timeoutInterval = 200;
 
-  AFHTTPRequestOperation* albumRequest = [[AFHTTPRequestOperation alloc] initWithRequest:request];
-  albumRequest.responseSerializer = [AFJSONResponseSerializer serializer];
-  [albumRequest setCompletionBlockWithSuccess:[self blockForAlbumProcessing] failure:nil];
-  [self.queue addOperation:albumRequest];
+	AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+	@synchronized (manager) {
+		manager.responseSerializer = [AFJSONResponseSerializer serializer];
+		[manager GET:url.absoluteString parameters:nil progress:nil success:[self blockForAlbumProcessing] failure:^(NSURLSessionTask *operation, NSError *error) {
+			NSLog(@"Error: %@", error);
+		}];
+	}
 }
 
 #pragma mark - UIViewController

@@ -67,7 +67,7 @@ typedef enum {
  *
  * @ingroup NimbusNetworkImage
  */
-@interface NINetworkImageView : UIImageView <NIOperationDelegate>
+@interface NINetworkImageView : UIImageView
 
 #pragma mark Creating a Network Image View
 
@@ -83,7 +83,6 @@ typedef enum {
 #pragma mark Configurable Properties
 
 @property (nonatomic, strong) NIImageMemoryCache* imageMemoryCache;    // Default: [Nimbus imageMemoryCache]
-@property (nonatomic, strong) NSOperationQueue* networkOperationQueue; // Default: [Nimbus networkOperationQueue]
 
 @property (nonatomic, assign) NSTimeInterval maxAge;     // Default: 0
 
@@ -95,8 +94,6 @@ typedef enum {
 - (void)setPathToNetworkImage:(NSString *)pathToNetworkImage forDisplaySize:(CGSize)displaySize contentMode:(UIViewContentMode)contentMode cropRect:(CGRect)cropRect;
 - (void)setPathToNetworkImage:(NSString *)pathToNetworkImage cropRect:(CGRect)cropRect;
 - (void)setPathToNetworkImage:(NSString *)pathToNetworkImage contentMode:(UIViewContentMode)contentMode;
-
-- (void)setNetworkImageOperation:(NIOperation<NINetworkImageOperation> *)operation forDisplaySize:(CGSize)displaySize contentMode:(UIViewContentMode)contentMode cropRect:(CGRect)cropRect;
 
 #pragma mark State
 

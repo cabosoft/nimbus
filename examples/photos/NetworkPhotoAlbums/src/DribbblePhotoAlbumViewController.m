@@ -44,8 +44,8 @@
   }
 }
 
-- (void (^)(AFHTTPRequestOperation *operation, id JSON))blockForAlbumProcessing {
-  return ^(AFHTTPRequestOperation *operation, id object) {
+- (void (^)(NSURLSessionTask *task, id JSON))blockForAlbumProcessing {
+  return ^(NSURLSessionTask *task, id object) {
     NSArray* data = [object objectForKey:@"shots"];
     
     NSMutableArray* photoInformation = [NSMutableArray arrayWithCapacity:[data count]];
@@ -81,18 +81,20 @@
 }
 
 - (void)loadAlbumInformation {
-  NSString* albumURLPath = [@"http://api.dribbble.com" stringByAppendingString:self.apiPath];
+  NSString* albumURLPath = [@"https://api.dribbble.com" stringByAppendingString:self.apiPath];
 
   // Nimbus processors allow us to perform complex computations on a separate thread before
   // returning the object to the main thread. This is useful here because we perform sorting
   // operations and pruning on the results.
   NSURL* url = [NSURL URLWithString:albumURLPath];
-  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
-
-  AFHTTPRequestOperation* albumRequest = [[AFHTTPRequestOperation alloc] initWithRequest:request];
-  albumRequest.responseSerializer = [AFJSONResponseSerializer serializer];
-  [albumRequest setCompletionBlockWithSuccess:[self blockForAlbumProcessing] failure:nil];
-  [self.queue addOperation:albumRequest];
+ 
+	AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+	@synchronized (manager) {
+		manager.responseSerializer = [AFJSONResponseSerializer serializer];
+		[manager GET:url.absoluteString parameters:nil progress:nil success:[self blockForAlbumProcessing] failure:^(NSURLSessionTask *operation, NSError *error) {
+			NSLog(@"Error: %@", error);
+		}];
+	}
 }
 
 #pragma mark - UIViewController
