@@ -156,7 +156,7 @@
 
     if (nil == _nextButton) {
       UIImage* nextIcon = [UIImage imageWithContentsOfFile:
-                           NIPathForBundleResource(nil, @"NimbusPhotos.bundle/gfx/next.png")];
+                           NIPathForBundleResource([NSBundle bundleForClass:[NIToolbarPhotoViewController class]], @"NimbusPhotos.bundle/gfx/next.png")];
 
       // We weren't able to find the next or previous icons in your application's resources.
       // Ensure that you've dragged the NimbusPhotos.bundle from src/photos/resources into your
@@ -175,7 +175,7 @@
 
     if (nil == _previousButton) {
       UIImage* previousIcon = [UIImage imageWithContentsOfFile:
-                               NIPathForBundleResource(nil, @"NimbusPhotos.bundle/gfx/previous.png")];
+                               NIPathForBundleResource([NSBundle bundleForClass:[NIToolbarPhotoViewController class]], @"NimbusPhotos.bundle/gfx/previous.png")];
 
       // We weren't able to find the next or previous icons in your application's resources.
       // Ensure that you've dragged the NimbusPhotos.bundle from src/photos/resources into your

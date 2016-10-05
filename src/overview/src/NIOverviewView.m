@@ -58,7 +58,7 @@ static const NSUInteger kNumberOfFingersForPanGestureRecognizer = 1;
     _pageViews = [[NSMutableArray alloc] init];
 
     _backgroundImage = [UIImage imageWithContentsOfFile:
-                        NIPathForBundleResource(nil, @"NimbusOverviewer.bundle/gfx/blueprint.gif")];
+                        NIPathForBundleResource([NSBundle bundleForClass:[NIOverviewView class]], @"NimbusOverviewer.bundle/gfx/blueprint.gif")];
     self.backgroundColor = NIIsTintColorGloballySupported() ? self.tintColor : [UIColor colorWithPatternImage:_backgroundImage];
 
     _pagingScrollView = [[UIScrollView alloc] initWithFrame:[self frameForPagingScrollView]];

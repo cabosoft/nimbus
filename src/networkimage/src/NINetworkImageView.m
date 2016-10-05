@@ -351,7 +351,7 @@
 		  serializer.scaleOptions = self.scaleOptions;
 		  serializer.interpolationQuality = self.interpolationQuality;
 			
-		  manager.responseSerializer = [AFImageResponseSerializer serializer];
+		  manager.responseSerializer = serializer;
 
 		  NSString* originalCacheKey = [self cacheKeyForCacheIdentifier:pathToNetworkImage
 															  imageSize:displaySize

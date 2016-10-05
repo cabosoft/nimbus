@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "Nimbus"
-  s.version      = "1.3.1"
+  s.version      = "1.3.2"
   s.summary      = "The iOS framework that grows only as fast as its documentation"
   s.description  = <<-DESC
   Nimbus is an iOS framework whose feature set grows only as fast as its documentation. By focusing
@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   }
   s.social_media_url   = "http://twitter.com/NimbusKit"
   s.platform     = :ios, "8.0"
-  s.source       = { :git => "https://github.com/cabosoft/nimbus.git", :tag => "1.3.1-Cabo" }
+  s.source       = { :git => "https://github.com/cabosoft/nimbus.git", :tag => "1.3.2-Cabo" }
   s.requires_arc = true
 
   s.subspec 'AttributedLabel' do |ss|
@@ -86,8 +86,8 @@ Pod::Spec.new do |s|
     ss.source_files = 'src/overview/src'
     ss.dependency 'Nimbus/Core'
     ss.dependency 'Nimbus/Models'
-    s.resource_bundles = {
-      'Overview' => ['src/overview/resources/NimbusOverviewer.bundle/*']
+    ss.resource_bundle = {
+      'NimbusOverviewer' => ['src/overview/resources/NimbusOverviewer.bundle/*']
     }
   end
 
@@ -100,6 +100,9 @@ Pod::Spec.new do |s|
     ss.source_files = 'src/photos/src'
     ss.dependency 'Nimbus/Core'
     ss.dependency 'Nimbus/PagingScrollView'
+    ss.resource_bundle = {
+      'NimbusPhotos' => ['src/photos/resources/NimbusPhotos.bundle/*']
+    }
   end
 
   s.subspec 'Textfield' do |ss|
@@ -110,8 +113,8 @@ Pod::Spec.new do |s|
   s.subspec 'WebController' do |ss|
     ss.source_files = 'src/webcontroller/src'
     ss.dependency 'Nimbus/Core'
-    s.resource_bundles = {
-      'WebController' => ['src/webcontroller/resources/NimbusWebController.bundle/*']
+    ss.resource_bundle = {
+      'NimbusWebController' => ['src/webcontroller/resources/NimbusWebController.bundle/*']
     }
   end
 end
