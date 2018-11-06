@@ -190,7 +190,7 @@ typedef enum {
 }
 
 - (void)segmentedControlWithImagesDidChangeValue:(UISegmentedControl *)segmentedControl {
-  NIDPRINT(@"Segmented control changed value to index %d", segmentedControl.selectedSegmentIndex);
+	NIDPRINT(@"Segmented control changed value to index %ld", (long)segmentedControl.selectedSegmentIndex);
 }
 
 - (void)datePickerDidChangeValue:(UIDatePicker *)picker {

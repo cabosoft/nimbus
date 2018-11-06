@@ -147,10 +147,10 @@ CGFloat NIOverviewStatusBarHeight(void) {
 
   // TODO (jverkoey July 23, 2011): Add a translucent property to the overview view.
   if (UIStatusBarStyleDefault == statusBarStyle
-      || UIStatusBarStyleBlackOpaque == statusBarStyle) {
+      || UIStatusBarStyleLightContent == statusBarStyle) {
     [[NIOverview view] setTranslucent:NO];
 
-  } else if (UIStatusBarStyleBlackTranslucent == statusBarStyle) {
+  } else if (UIStatusBarStyleLightContent == statusBarStyle) {
     [[NIOverview view] setTranslucent:YES];
   }
 

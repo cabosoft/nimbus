@@ -79,7 +79,7 @@
     self.scrubberIsEnabled = NIIsPad();
 
     // Allow the photos to display beneath the status bar.
-    self.wantsFullScreenLayout = YES;
+	  self.edgesForExtendedLayout = UIRectEdgeAll;
   }
   return self;
 }
@@ -106,7 +106,7 @@
     self.scrubberIsEnabled = NIIsPad();
     
     // Allow the photos to display beneath the status bar.
-    self.wantsFullScreenLayout = YES;
+	self.edgesForExtendedLayout = UIRectEdgeAll;
 }
 
 
@@ -243,9 +243,7 @@
 - (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
 
-  [[UIApplication sharedApplication] setStatusBarStyle: (NIIsPad()
-                                                         ? UIStatusBarStyleBlackOpaque
-                                                         : UIStatusBarStyleBlackTranslucent)
+  [[UIApplication sharedApplication] setStatusBarStyle: UIStatusBarStyleLightContent
                                               animated: animated];
 
   UINavigationBar* navBar = self.navigationController.navigationBar;
@@ -455,9 +453,9 @@
 }
 
 - (void)setChromeTitle {
-  self.title = [NSString stringWithFormat:@"%zd of %zd",
-                (self.photoAlbumView.centerPageIndex + 1),
-                self.photoAlbumView.numberOfPages];
+  self.title = [NSString stringWithFormat:@"%ld of %ld",
+                (long)(self.photoAlbumView.centerPageIndex + 1),
+                (long)self.photoAlbumView.numberOfPages];
 }
 
 #pragma mark - NIPhotoAlbumScrollViewDelegate

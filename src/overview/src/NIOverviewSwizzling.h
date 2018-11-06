@@ -24,11 +24,11 @@
  *
  * The Overview swizzles the methods used by NIStatusBarHeight.
  */
-CGFloat NIOverviewStatusBarHeight();
+CGFloat NIOverviewStatusBarHeight(void);
 
 /**
  * Swizzles all the necessary methods to get the Overview working.
  *
  * @ingroup Overview-Tools
  */
-void NIOverviewSwizzleMethods();
+void NIOverviewSwizzleMethods(void);

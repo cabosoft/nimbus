@@ -81,6 +81,11 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
   _scrollView.showsVerticalScrollIndicator = NO;
   _scrollView.showsHorizontalScrollIndicator = NO;
 
+  if ([[UIView class]
+          respondsToSelector:@selector(userInterfaceLayoutDirectionForSemanticContentAttribute:)] && [self respondsToSelector:@selector(semanticContentAttribute)] && [UIView userInterfaceLayoutDirectionForSemanticContentAttribute:self.semanticContentAttribute] == UIUserInterfaceLayoutDirectionRightToLeft) {
+    [self setRTLEnabled:YES];
+  }
+
   [self addSubview:_scrollView];
 }
 
@@ -299,7 +304,13 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
 }
 
 - (UIView<NIPagingScrollViewPage> *)loadPageAtIndex:(NSInteger)pageIndex {
-  UIView<NIPagingScrollViewPage>* page = [self.dataSource pagingScrollView:self pageViewForIndex:pageIndex];
+  id<NIPagingScrollViewDataSource> dataSource = self.dataSource;
+  if (dataSource == nil) {
+    // If there's no data source, just return a nil page.
+    return nil;
+  }
+
+  UIView<NIPagingScrollViewPage> *page = [dataSource pagingScrollView:self pageViewForIndex:pageIndex];
 
   NIDASSERT([page isKindOfClass:[UIView class]]);
   NIDASSERT([page conformsToProtocol:@protocol(NIPagingScrollViewPage)]);
@@ -322,6 +333,10 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
   // This will only be called once, before the page is shown.
   [self willDisplayPage:page atIndex:pageIndex];
 
+  if (_RTLEnabled) {
+    [self concatInvertXTransformation:page];
+  }
+
   [_scrollView addSubview:page];
   [_visiblePages addObject:page];
 }
@@ -329,12 +344,7 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
 - (void)recyclePageAtIndex:(NSInteger)pageIndex {
   for (UIView<NIPagingScrollViewPage>* page in [_visiblePages copy]) {
     if (page.pageIndex == pageIndex) {
-      [_viewRecycler recycleView:page];
-      [page removeFromSuperview];
-
-      [self didRecyclePage:page];
-
-      [_visiblePages removeObject:page];
+      [self recyclePage:page];
     }
   }
 }
@@ -362,12 +372,7 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
   // iterating over it.
   for (UIView<NIPagingScrollViewPage>* page in [_visiblePages copy]) {
     if (!NSLocationInRange(page.pageIndex, rangeOfVisiblePages)) {
-      [_viewRecycler recycleView:page];
-      [page removeFromSuperview];
-
-      [self didRecyclePage:page];
-
-      [_visiblePages removeObject:page];
+      [self recyclePage:page];
     }
   }
 
@@ -412,6 +417,26 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
       [page setFrame:pageFrame];
     }
   }
+}
+
+- (void)recyclePage:(UIView<NIPagingScrollViewPage> *)page {
+  [_viewRecycler recycleView:page];
+  [page removeFromSuperview];
+
+  [self didRecyclePage:page];
+
+  [_visiblePages removeObject:page];
+
+  if (_RTLEnabled) {
+    [self concatInvertXTransformation:page];
+  }
+}
+
+- (void)concatInvertXTransformation:(UIView *)view {
+  CGAffineTransform currentTransform = view.transform;
+  CGAffineTransform finalTransform = CGAffineTransformConcat(currentTransform,
+                                                             CGAffineTransformMakeScale(-1, 1));
+  [view setTransform:finalTransform];
 }
 
 #pragma mark - UIView
@@ -622,6 +647,12 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
   CGFloat offset = [self scrolledPageOffset];
   CGFloat pageScrollableDimension = [self pageScrollableDimension];
 
+  if (pageScrollableDimension == 0) {
+    _firstVisiblePageIndexBeforeRotation = 0;
+    _percentScrolledIntoFirstVisiblePage = 0.f;
+    return;
+  }
+
   if (offset >= 0) {
     _firstVisiblePageIndexBeforeRotation = (NSInteger)NICGFloatFloor(offset / pageScrollableDimension);
     _percentScrolledIntoFirstVisiblePage = ((offset
@@ -749,6 +780,14 @@ const CGFloat NIPagingScrollViewDefaultPageInset = 0;
     _type = type;
     _scrollView.scrollsToTop = (type == NIPagingScrollViewVertical);
   }
+}
+
+- (void)setRTLEnabled:(BOOL)RTLEnabled {
+  // Apply the transformation only if the state is changing.
+  if (!_RTLEnabled != !RTLEnabled) {
+    [self concatInvertXTransformation:_scrollView];
+  }
+  _RTLEnabled = RTLEnabled;
 }
 
 - (UIScrollView *)scrollView {

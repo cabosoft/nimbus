@@ -106,13 +106,13 @@ NSString* const NIJSONDidChangeNameKey = @"NIJSONNameKey";
 		NSString* diskPath = [rootPath stringByAppendingPathComponent:hashedPath];
 		[responseObject writeToFile:diskPath atomically:YES];
 		
-		NIStylesheet* stylesheet = [_stylesheetCache stylesheetWithPath:resultPath loadFromDisk:NO];
+		  NIStylesheet* stylesheet = [self->_stylesheetCache stylesheetWithPath:resultPath loadFromDisk:NO];
 		if ([stylesheet loadFromPath:resultPath pathPrefix:rootPath delegate:self]) {
 		  [changedStylesheets addObject:stylesheet];
 		}
 		
-		for (NSString* iteratingPath in _stylesheetPaths) {
-		  stylesheet = [_stylesheetCache stylesheetWithPath:iteratingPath loadFromDisk:NO];
+		  for (NSString* iteratingPath in self->_stylesheetPaths) {
+			  stylesheet = [self->_stylesheetCache stylesheetWithPath:iteratingPath loadFromDisk:NO];
 		  if ([stylesheet.dependencies containsObject:resultPath]) {
 			// This stylesheet has the changed stylesheet as a dependency so let's refresh it.
 			if ([stylesheet loadFromPath:iteratingPath pathPrefix:rootPath delegate:self]) {
@@ -228,12 +228,12 @@ NSString* const NIJSONDidChangeNameKey = @"NIJSONNameKey";
 		}
 
 		// Immediately start watching for more skin changes.
-		_retryCount = 0;
+		self->_retryCount = 0;
 		[self watchSkinChanges];
 
 	  } failure:^(NSURLSessionTask *operation, NSError *error) {
-		if (_retryCount < kMaxNumberOfRetries) {
-		  ++_retryCount;
+		if (self->_retryCount < kMaxNumberOfRetries) {
+		  ++self->_retryCount;
 		  
 		  dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kRetryInterval * NSEC_PER_MSEC));
 		  dispatch_after(popTime, dispatch_get_main_queue(), ^(void){

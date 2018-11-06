@@ -190,7 +190,7 @@ BOOL NIIsPad(void);
  *
  * @return YES if the device is 4" iPhone.
  */
-BOOL NIIs4Inch();
+BOOL NIIs4Inch(void);
 
 
 /**

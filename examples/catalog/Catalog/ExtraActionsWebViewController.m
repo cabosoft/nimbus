@@ -15,10 +15,11 @@
 //
 
 #import "ExtraActionsWebViewController.h"
+#import <Nimbus/Nimbus-Swift.h>
 
 @implementation ExtraActionsWebViewController
 
-- (BOOL)shouldPresentActionSheet:(UIActionSheet *)actionSheet {
+- (BOOL)shouldPresentActionSheet:(NIActionSheet *)actionSheet {
   // We call super here to populate the action sheet with the default actions.
   [super shouldPresentActionSheet:actionSheet];
 
@@ -31,7 +32,7 @@
   return YES;
 }
 
-- (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)actionSheet:(NIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   [super actionSheet:actionSheet clickedButtonAtIndex:buttonIndex];
   if (buttonIndex == 2) {
     [self openURL:[NSURL URLWithString:@"http://latest.docs.nimbuskit.info/"]];

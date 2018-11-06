@@ -78,7 +78,7 @@
   [[UIApplication sharedApplication] openURL:result.URL];
 }
 
-- (BOOL)attributedLabel:(NIAttributedLabel *)attributedLabel shouldPresentActionSheet:(UIActionSheet *)actionSheet withTextCheckingResult:(NSTextCheckingResult *)result atPoint:(CGPoint)point {
+- (BOOL)attributedLabel:(NIAttributedLabel *)attributedLabel shouldPresentActionSheet:(NIActionSheet *)actionSheet withTextCheckingResult:(NSTextCheckingResult *)result atPoint:(CGPoint)point {
   // Returning NO here will disable the long-tap action sheet from appearing.
   return NO;
 }
