@@ -21,6 +21,8 @@
 
 #import "NIPreprocessorMacros.h" /* for weak */
 
+@class NIActionSheet;
+
 /**
  * A simple web view controller implementation with a toolbar.
  *
@@ -37,16 +39,16 @@
  * - webView:didFailLoadWithError:
  * @endcode
  *
- * This view controller also implements UIActionSheetDelegate. If you want to implement methods of
+ * This view controller also implements NIActionSheetDelegate. If you want to implement methods of
  * this delegate then you should take care to call the super implementation if necessary. The
- * following UIActionSheetDelegate methods have implementations in this class:
+ * following NIActionSheetDelegate methods have implementations in this class:
  *
  * @code
  * - actionSheet:clickedButtonAtIndex:
  * - actionSheet:didDismissWithButtonIndex:
  * @endcode
  *
- * In addition to the above methods of the UIActionSheetDelegate, this view controller also provides
+ * In addition to the above methods of the NIActionSheetDelegate, this view controller also provides
  * the following method, which is invoked prior to presenting the internal action sheet to the user
  * and allows subclasses to customize the action sheet or even reject to display it (and provide their
  * own handling instead):
@@ -74,7 +76,7 @@
  *
  * @ingroup NimbusWebController
  */
-@interface NIWebController : UIViewController <UIWebViewDelegate, UIActionSheetDelegate>
+@interface NIWebController : UIViewController <UIWebViewDelegate>
 
 // Designated initializer.
 - (id)initWithRequest:(NSURLRequest *)request;
@@ -93,8 +95,12 @@
 @property (nonatomic, readonly, strong) UIWebView* webView;
 
 // Subclassing
-- (BOOL)shouldPresentActionSheet:(UIActionSheet *)actionSheet;
+- (BOOL)shouldPresentActionSheet:(NIActionSheet *)actionSheet;
 @property (nonatomic, strong) NSURL* actionSheetURL;
+
+#pragma mark - NIActionSheetDelegate
+- (void)actionSheet:(NIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex;
+- (void)actionSheet:(NIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex;
 
 @end
 
@@ -193,7 +199,7 @@
  * that is shown to the user or even cancel the presentation of the @c actionSheet by
  * returning NO from your implementation.
  *
- * @param actionSheet The UIActionSheet that will be presented to the user.
+ * @param actionSheet The NIActionSheet that will be presented to the user.
  * @return YES to present the actionSheet, NO if you want to perform a custom action.
  * @fn NIWebController::shouldPresentActionSheet:
  */

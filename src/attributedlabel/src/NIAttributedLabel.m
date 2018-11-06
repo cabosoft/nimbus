@@ -16,6 +16,7 @@
 //
 
 #import "NIAttributedLabel.h"
+#import <Nimbus/Nimbus-Swift.h>
 
 #import "NSMutableAttributedString+NimbusAttributedLabel.h"
 #import <QuartzCore/QuartzCore.h>
@@ -27,6 +28,13 @@
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < NIIOS_6_0
 #error "NIAttributedLabel requires iOS 6 or higher."
 #endif
+
+#define _NI_PUSH_SCOPED_DIAGNOSTICS_COMMAND(cmd) \
+  _Pragma ("clang diagnostic push") \
+  _Pragma (cmd)
+
+#define _NI_POP_DIAGNOSTICS() \
+  _Pragma ("clang diagnostic pop")
 
 // The number of seconds to wait before executing a long press action on the tapped link.
 static const NSTimeInterval kLongPressTimeInterval = 0.5;
@@ -45,10 +53,20 @@ static NSString* const kEllipsesCharacter = @"\u2026";
 
 NSString* const NIAttributedLabelLinkAttributeName = @"NIAttributedLabel:Link";
 
+static const void *kFontAttributeKey = @"NSFont";
+static const void *kStrikethroughAttributeKey = @"NSStrikethrough";
+static const void *kStrikethroughColorAttributeKey = @"NSStrikethroughColorAttributeName";
+
+static BOOL sEnableSingleLineSizeCalculationFix = NO;
+
 // For supporting images.
 CGFloat NIImageDelegateGetAscentCallback(void* refCon);
 CGFloat NIImageDelegateGetDescentCallback(void* refCon);
 CGFloat NIImageDelegateGetWidthCallback(void* refCon);
+
+void NIAttributedLabelEnableSingleLineSizeCalculationFix(void) {
+  sEnableSingleLineSizeCalculationFix = YES;
+}
 
 CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedString, CGSize constraintSize, NSInteger numberOfLines) {
   if (nil == attributedString) {
@@ -66,10 +84,12 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   // This logic adapted from @mattt's TTTAttributedLabel
   // https://github.com/mattt/TTTAttributedLabel
 
-  if (numberOfLines == 1) {
+  if (!sEnableSingleLineSizeCalculationFix && numberOfLines == 1) {
     constraintSize = CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX);
-
   } else if (numberOfLines > 0 && nil != framesetter) {
+    if (numberOfLines == 1) {
+      constraintSize = CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX);
+    }
     CGMutablePathRef path = CGPathCreateMutable();
     CGPathAddRect(path, NULL, CGRectMake(0, 0, constraintSize.width, constraintSize.height));
     CTFrameRef frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, NULL);
@@ -106,59 +126,117 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
  * - The accessibilityContainer must be a UIView.
  * - The accessibilityFrame is recomputed every time from the frameInContainer
  *   and the accessibilityContainer.
+ * - The accessibilityPath and accessibilityActivationPoint (if applicable) are
+ *   recomputed every time from the pointsInContainer and the accessibilityContainer.
  *
  * These differences cease to be as soon as the initial accessibility container
- * is changed externally, which is internally tracked by isFrameInContainerValid.
+ * is changed externally, which is internally tracked by isContainerValid.
  */
 @interface NIViewAccessibilityElement : UIAccessibilityElement
 
-// Designated initializer.
+- (instancetype)initWithAccessibilityContainer:(id)container
+                              frameInContainer:(CGRect)frameInContainer
+                             pointsInContainer:(NSArray *)pointsInContainer;
+
 - (instancetype)initWithAccessibilityContainer:(id)container frameInContainer:(CGRect)frameInContainer;
 
 // This frame is in the accessibilityContainer coordinates.
 @property (nonatomic, readonly) CGRect frameInContainer;
 
+// The first element of the array is the accessibilityActivationPoint, the rest of the array is the
+// accessibilityPath.
+@property (nonatomic, readonly) NSArray *pointsInContainer; // of NSValue
+
 @end
 
 @interface NIViewAccessibilityElement ()
 
-// Whether frameInContainer is valid, that is, the container is still the one
-// used to compute frameInContainer.
-@property (nonatomic) BOOL isFrameInContainerValid;
+// Whether the computations done based on the container are still valid. That is, the container has
+// not been changed since the computations (see frameInContainer and pointsInContainer) were
+// performed.
+@property (nonatomic) BOOL isContainerDataValid;
 
 @end
 
 @implementation NIViewAccessibilityElement
 
-- (instancetype)initWithAccessibilityContainer:(id)container frameInContainer:(CGRect)frameInContainer {
+// The accessibilityFrame is always needed even if we have an accessibilityPath (accessibilityPath
+// will override accessibilityFrame when VoiceOver tries to highlight this element), because the
+// screen scrolls according to the frame (will scroll until the frame fully appears).
+- (instancetype)initWithAccessibilityContainer:(id)container
+                              frameInContainer:(CGRect)frameInContainer
+                             pointsInContainer:(NSArray *)pointsInContainer {
   NIDASSERT([container isKindOfClass:[UIView class]]);
   if ((self = [super initWithAccessibilityContainer:container])) {
     _frameInContainer = frameInContainer;
-    _isFrameInContainerValid = YES;
+    _pointsInContainer = pointsInContainer;
+    _isContainerDataValid = YES;
   }
   return self;
 }
 
+- (instancetype)initWithAccessibilityContainer:(id)container
+                              frameInContainer:(CGRect)frameInContainer {
+  return [self initWithAccessibilityContainer:container
+                             frameInContainer:frameInContainer
+                            pointsInContainer:nil];
+}
+
 - (instancetype)initWithAccessibilityContainer:(id)container {
-  if ((self = [self initWithAccessibilityContainer:container frameInContainer:CGRectZero])) {
-    self.isFrameInContainerValid = NO;
+  if (self = [self initWithAccessibilityContainer:container
+                                 frameInContainer:CGRectZero
+                                pointsInContainer:nil]) {
+    self.isContainerDataValid = NO;
   }
   return self;
 }
 
 - (void)setAccessibilityContainer:(id)accessibilityContainer {
-  self.isFrameInContainerValid = NO;
+  self.isContainerDataValid = NO;
   [super setAccessibilityContainer:accessibilityContainer];
 }
 
 - (CGRect)accessibilityFrame {
-  if (self.isFrameInContainerValid) {
-    UIView* view = [self accessibilityContainer];
-    NIDASSERT([view isKindOfClass:[UIView class]]);
-    CGRect frame = [view convertRect:self.frameInContainer toView:nil];
-    return [view.window convertRect:frame toWindow:nil];
+  if (self.isContainerDataValid) {
+    UIView* accessibilityContainerView = self.accessibilityContainer;
+    NIDASSERT([accessibilityContainerView isKindOfClass:[UIView class]]);
+    CGRect frame = [accessibilityContainerView convertRect:self.frameInContainer toView:nil];
+    return [accessibilityContainerView.window convertRect:frame toWindow:nil];
   }
-  return [super accessibilityFrame];
+  return super.accessibilityFrame;
+}
+
+- (UIBezierPath *)accessibilityPath {
+  if (self.isContainerDataValid && NIIsArrayWithObjects(self.pointsInContainer)) {
+    UIView *accessibilityContainerView = self.accessibilityContainer;
+    NIDASSERT([accessibilityContainerView isKindOfClass:[UIView class]]);
+    UIBezierPath *path = [UIBezierPath bezierPath];
+    for (NSUInteger i = 1; i < _pointsInContainer.count; ++i) {
+      CGPoint p = [[_pointsInContainer objectAtIndex:i] CGPointValue];
+      p = [accessibilityContainerView convertPoint:p toView:nil];
+      p = [accessibilityContainerView.window convertPoint:p toWindow:nil];
+      if (path.empty) {
+        [path moveToPoint:p];
+      } else {
+        [path addLineToPoint:p];
+      }
+    }
+    [path closePath];
+    return path;
+  }
+  return super.accessibilityPath;
+}
+
+- (CGPoint)accessibilityActivationPoint {
+  if (self.isContainerDataValid && NIIsArrayWithObjects(self.pointsInContainer)) {
+    UIView *accessibilityContainerView = self.accessibilityContainer;
+    NIDASSERT([accessibilityContainerView isKindOfClass:[UIView class]]);
+    CGPoint point = [[_pointsInContainer firstObject] CGPointValue];
+    point = [accessibilityContainerView convertPoint:point toView:nil];
+    point = [accessibilityContainerView.window convertPoint:point toWindow:nil];
+    return point;
+  }
+  return super.accessibilityActivationPoint;
 }
 
 @end
@@ -187,13 +265,13 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
 
 @end
 
-@interface NIAttributedLabel() <UIActionSheetDelegate>
+@interface NIAttributedLabel() <NIActionSheetDelegate>
 
 @property (nonatomic, strong) NSMutableAttributedString* mutableAttributedString;
 
 @property (nonatomic) CTFrameRef textFrame; // CFType, manually managed lifetime, see setter.
 
-@property (assign)            BOOL detectingLinks; // Atomic.
+@property (nonatomic, assign) NSInteger linkDetectionRequestID;
 @property (nonatomic)         BOOL linksHaveBeenDetected;
 @property (nonatomic, copy)   NSArray*        detectedlinkLocations;
 @property (nonatomic, strong) NSMutableArray* explicitLinkLocations;  // Of NSTextCheckingResult.
@@ -369,6 +447,7 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
     // Clear the link caches.
     self.detectedlinkLocations = nil;
     self.linksHaveBeenDetected = NO;
+    self.linkDetectionRequestID++;
     [self removeAllExplicitLinks];
 
     // Remove all images.
@@ -552,6 +631,14 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   }
 }
 
+- (void)setStrikethroughColor:(UIColor *)strikethroughColor {
+  if (_strikethroughColor != strikethroughColor) {
+    _strikethroughColor = strikethroughColor;
+
+    [self attributedTextDidChange];
+  }
+}
+
 - (void)setLineHeight:(CGFloat)lineHeight {
   _lineHeight = lineHeight;
 
@@ -638,22 +725,22 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
 }
 
 - (void)_deferLinkDetection {
-  if (!self.detectingLinks) {
-    self.detectingLinks = YES;
+  self.linkDetectionRequestID++;
+  const NSInteger linkDetectionRequestID = self.linkDetectionRequestID;
+  NSString* string = [self.mutableAttributedString.string copy];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    NSArray* matches = [self _matchesFromAttributedString:string];
 
-    NSString* string = [self.mutableAttributedString.string copy];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      NSArray* matches = [self _matchesFromAttributedString:string];
-      self.detectingLinks = NO;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (self.linkDetectionRequestID != linkDetectionRequestID) {
+        return;
+      }
+      self.detectedlinkLocations = matches;
+      self.linksHaveBeenDetected = YES;
 
-      dispatch_async(dispatch_get_main_queue(), ^{
-        self.detectedlinkLocations = matches;
-        self.linksHaveBeenDetected = YES;
-
-        [self attributedTextDidChange];
-      });
+      [self attributedTextDidChange];
     });
-  }
+  });
 }
 
 // Use an NSDataDetector to find any implicit links in the text. The results are cached until
@@ -880,7 +967,10 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   return isNearLink;
 }
 
-- (NSArray *)_rectsForLink:(NSTextCheckingResult *)link {
+// For a range of text, this method returns an NSArray of CGRectValue, each representing a part of
+// text in the same line.
+// The length of the array is the same as the number of lines this range covers.
+- (NSArray *)_rectsForRange:(NSRange)range {
   CFArrayRef lines = CTFrameGetLines(self.textFrame);
   if (nil == lines) {
     return nil;
@@ -892,22 +982,128 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   CGAffineTransform transform = [self _transformForCoreText];
   CGFloat verticalOffset = [self _verticalOffsetForBounds:self.bounds];
 
-  NSRange linkRange = link.range;
-
   NSMutableArray* rects = [NSMutableArray array];
   for (int i = 0; i < count; i++) {
     CTLineRef line = CFArrayGetValueAtIndex(lines, i);
 
-    CGRect linkRect = [self _rectForRange:linkRange inLine:line lineOrigin:lineOrigins[i]];
+    CGRect rect = [self _rectForRange:range inLine:line lineOrigin:lineOrigins[i]];
 
-    if (!CGRectIsEmpty(linkRect)) {
-      linkRect = CGRectApplyAffineTransform(linkRect, transform);
-      linkRect = CGRectOffset(linkRect, 0, verticalOffset);
-      [rects addObject:[NSValue valueWithCGRect:linkRect]];
+    if (!CGRectIsEmpty(rect)) {
+      rect = CGRectApplyAffineTransform(rect, transform);
+      rect = CGRectOffset(rect, 0, verticalOffset);
+      [rects addObject:[NSValue valueWithCGRect:rect]];
     }
   }
 
   return [rects copy];
+}
+
+// The bounds of a text fragment always look like a rectangle without a top-left corner (if the text
+// starts in the middle of the line) and without a bottom-right corner (if the text ends in the
+// middle of the line).
+//
+// Take the following as an example:
+// ***@******@
+// *  * ---- *
+// @**! ---- *
+// * ------- *
+// * -- !****@
+// * -- *    *
+// @****@*****
+//
+// Suppose the whole link (marked as '-' in the graph) goes over two lines. The boundary of the link
+// is the whole rectangle. And the two points marked as '!' are the top-left and bottom-right cut
+// points correspondingly.
+//
+// This method will calculate the 'real' boundary (aka. the accessibility path, points marked as '@'
+// and '!') in the clockwise order and return an array in which the first element is the activation
+// point and the rest is this accessibility path.
+- (NSArray *)pointsWithActivationPoint:(CGPoint)activationPoint
+                                  rect:(CGRect)rect
+                       topLeftCutPoint:(CGPoint)topLeftCutPoint
+                   bottomRightCutPoint:(CGPoint)bottomRightCutPoint {
+  CGPoint topLeft = rect.origin;
+  CGPoint topRight = CGPointMake(CGRectGetMaxX(rect), topLeft.y);
+  CGPoint bottomLeft = CGPointMake(topLeft.x, CGRectGetMaxY(rect));
+  CGPoint bottomRight = CGPointMake(topRight.x, bottomLeft.y);
+
+  NSMutableArray *array =
+      [NSMutableArray arrayWithObject:[NSValue valueWithCGPoint:activationPoint]];
+  if (CGPointEqualToPoint(topLeftCutPoint, topLeft)) {
+    [array addObject:[NSValue valueWithCGPoint:topLeft]];
+  } else {
+    [array addObject:[NSValue valueWithCGPoint:CGPointMake(topLeft.x, topLeftCutPoint.y)]];
+    [array addObject:[NSValue valueWithCGPoint:topLeftCutPoint]];
+    [array addObject:[NSValue valueWithCGPoint:CGPointMake(topLeftCutPoint.x, topLeft.y)]];
+  }
+  [array addObject:[NSValue valueWithCGPoint:topRight]];
+  if (CGPointEqualToPoint(bottomRightCutPoint, bottomRight)) {
+    [array addObject:[NSValue valueWithCGPoint:bottomRight]];
+  } else {
+    [array addObject:[NSValue valueWithCGPoint:CGPointMake(bottomRight.x, bottomRightCutPoint.y)]];
+    [array addObject:[NSValue valueWithCGPoint:bottomRightCutPoint]];
+    [array addObject:[NSValue valueWithCGPoint:CGPointMake(bottomRightCutPoint.x, bottomRight.y)]];
+  }
+  [array addObject:[NSValue valueWithCGPoint:bottomLeft]];
+
+  return array;
+}
+
+// Returns the smallest rectangle that contains all the rectangles in the array.
+- (CGRect)boundsForRects:(NSArray *)rects {
+  CGFloat minX = CGFLOAT_MAX, minY = CGFLOAT_MAX, maxX = -1, maxY = -1;
+  for (NSValue *value in rects) {
+    CGRect rect = [value CGRectValue];
+    minX = MIN(rect.origin.x, minX);
+    minY = MIN(rect.origin.y, minY);
+    maxX = MAX(rect.origin.x + rect.size.width, maxX);
+    maxY = MAX(rect.origin.y + rect.size.height, maxY);
+  }
+  return CGRectMake(minX, minY, maxX - minX, maxY - minY);
+}
+
+// Returns an accessibility element representing the text within this range, or nil if the element
+// cannot be initialised.
+- (NIViewAccessibilityElement *)accessibilityElementForRange:(NSRange)range {
+  if (range.length == 0) {
+    return nil;
+  }
+
+  NSArray *rects = [self _rectsForRange:range];
+  if (!NIIsArrayWithObjects(rects)) {
+    return nil;
+  }
+
+  CGRect bounds = [self boundsForRects:rects];
+  CGRect firstRect = [[rects firstObject] CGRectValue];
+  // The activation point can be any point in the area. Let's make it the center of the first small
+  // rect.
+  CGPoint activationPoint = CGPointMake(firstRect.origin.x + firstRect.size.width / 2,
+                                        firstRect.origin.y + firstRect.size.height / 2);
+  CGRect lastRect = [[rects lastObject] CGRectValue];
+  NSArray *pointsArray =
+      [self pointsWithActivationPoint:activationPoint
+                                 rect:bounds
+                      topLeftCutPoint:CGPointMake(firstRect.origin.x, CGRectGetMaxY(firstRect))
+                  bottomRightCutPoint:CGPointMake(CGRectGetMaxX(lastRect), lastRect.origin.y)];
+  NIViewAccessibilityElement *element =
+      [[NIViewAccessibilityElement alloc] initWithAccessibilityContainer:self
+                                                        frameInContainer:bounds
+                                                       pointsInContainer:pointsArray];
+  element.accessibilityLabel = [self.mutableAttributedString.string substringWithRange:range];
+  // Set the frame to fallback on if |element|'s accessibility container is changed externally.
+  CGRect rectValueInWindowCoordinates = [self convertRect:bounds toView:nil];
+  CGRect rectValueInScreenCoordinates =
+      [self.window convertRect:rectValueInWindowCoordinates toWindow:nil];
+  element.accessibilityFrame = rectValueInScreenCoordinates;
+  // Set the activation point to fallback on if |element|'s accessibility container is changed
+  // externally.
+  CGPoint pointValueInWindowCoordinates = [self convertPoint:activationPoint toView:nil];
+  CGPoint pointValueInScreenCoordinates =
+      [self.window convertPoint:pointValueInWindowCoordinates toWindow:nil];
+  element.accessibilityActivationPoint = pointValueInScreenCoordinates;
+
+  return element;
 }
 
 - (void)setTouchedLink:(NSTextCheckingResult *)touchedLink {
@@ -1020,9 +1216,9 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   [self setNeedsDisplay];
 }
 
-- (UIActionSheet *)actionSheetForResult:(NSTextCheckingResult *)result {
-  UIActionSheet* actionSheet =
-  [[UIActionSheet alloc] initWithTitle:nil
+- (NIActionSheet *)actionSheetForResult:(NSTextCheckingResult *)result {
+  NIActionSheet* actionSheet =
+  [[NIActionSheet alloc] initWithTitle:nil
                               delegate:self
                      cancelButtonTitle:nil
                 destructiveButtonTitle:nil
@@ -1071,7 +1267,7 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   if (nil != self.touchedLink) {
     self.actionSheetLink = self.touchedLink;
 
-    UIActionSheet* actionSheet = [self actionSheetForResult:self.actionSheetLink];
+    NIActionSheet* actionSheet = [self actionSheetForResult:self.actionSheetLink];
 
     BOOL shouldPresent = YES;
     if ([self.delegate respondsToSelector:@selector(attributedLabel:shouldPresentActionSheet:withTextCheckingResult:atPoint:)]) {
@@ -1080,12 +1276,7 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
     }
 
     if (shouldPresent) {
-      if (NIIsPad()) {
-        [actionSheet showFromRect:CGRectMake(self.touchPoint.x - 22, self.touchPoint.y - 22, 44, 44) inView:self animated:YES];
-      } else {
-        [actionSheet showInView:self];
-      }
-
+		[actionSheet show];
     } else {
       self.actionSheetLink = nil;
     }
@@ -1157,17 +1348,16 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
       callbacks.getDescent = NIImageDelegateGetDescentCallback;
       callbacks.getWidth = NIImageDelegateGetWidthCallback;
 
-      NSUInteger index = labelImage.index;
-      if (index >= attributedString.length) {
-        index = attributedString.length - 1;
+      NSDictionary *attributes = nil;
+      if (attributedString.length) {
+        NSInteger index = MAX((NSInteger)0, MIN((NSInteger)(attributedString.length - 1), labelImage.index));
+        attributes = [attributedString attributesAtIndex:index effectiveRange:NULL];
       }
-
-      NSDictionary *attributes = [attributedString attributesAtIndex:index effectiveRange:NULL];
-      CTFontRef font = (__bridge CTFontRef)[attributes valueForKey:(__bridge id)kCTFontAttributeName];
-
-      if (font != NULL) {
-        labelImage.fontAscent = CTFontGetAscent(font);
-        labelImage.fontDescent = CTFontGetDescent(font);
+      
+      UIFont *font = attributes[NSFontAttributeName];
+      if (font) {
+        labelImage.fontAscent = font.ascender;
+        labelImage.fontDescent = -font.descender;
       }
 
       CTRunDelegateRef delegate = CTRunDelegateCreate(&callbacks, (__bridge void *)labelImage);
@@ -1179,7 +1369,10 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
         unichar objectReplacementChar = 0xFFFC;
         NSString *objectReplacementString = [NSString stringWithCharacters:&objectReplacementChar length:1];
         NSMutableAttributedString* space = [[NSMutableAttributedString alloc] initWithString:objectReplacementString];
-
+        if (font) {
+          [space addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, space.length)];
+        }
+        
         CFRange range = CFRangeMake(0, 1);
         CFMutableAttributedStringRef spaceString = (__bridge_retained CFMutableAttributedStringRef)space;
         CFAttributedStringSetAttribute(spaceString, range, kCTRunDelegateAttributeName, delegate);
@@ -1393,7 +1586,7 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
         CFRelease(truncationLine);
         CFRelease(truncationToken);
 
-        CTLineDraw(truncatedLine, ctx);
+        [self drawLine:truncatedLine context:ctx];
         CFRelease(truncatedLine);
 
         shouldDrawLine = NO;
@@ -1401,8 +1594,89 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
     }
 
     if (shouldDrawLine) {
-      CTLineDraw(line, ctx);
+      [self drawLine:line context:ctx];
     }
+  }
+}
+
+- (void)drawLine:(CTLineRef)line context:(CGContextRef)ctx {
+  // Process additional NSAttributes that are not supported by CT library such as strikethrough.
+  CFArrayRef runs = CTLineGetGlyphRuns(line);
+  for (NSInteger index = 0; index < CFArrayGetCount(runs); index++) {
+    CTRunRef run = CFArrayGetValueAtIndex(runs, index);
+    CTRunDraw(run, ctx, CFRangeMake(0, 0));
+    CFDictionaryRef attributes = CTRunGetAttributes(run);
+    if (attributes) {
+      if (CFDictionaryContainsKey(attributes, kStrikethroughAttributeKey)) {
+        [self drawStrikethroughOverGlyphRun:run attributes:attributes ctx:ctx];
+      }
+    }
+  }
+}
+
+/**
+ * Draws the strikethrough over the already drawn CTRunRef text. The strikethrough height is half
+ * of the x-height of the current font. This means that the line is drawn in the middle of the lower
+ * case 'x' char.
+ */
+- (void)drawStrikethroughOverGlyphRun:(CTRunRef)run
+                           attributes:(CFDictionaryRef)attributes
+                                  ctx:(CGContextRef)ctx {
+  CFNumberRef styleRef = CFDictionaryGetValue(attributes, kStrikethroughAttributeKey);
+  NSUnderlineStyle style = 0;
+  CFNumberGetValue(styleRef, kCFNumberSInt64Type, &style);
+  if (style == NSUnderlineStyleNone) {
+    return;
+  }
+  const CGPoint *firstGlyphPosition = NULL;
+  firstGlyphPosition = CTRunGetPositionsPtr(run);
+  CGPoint *positions = NULL;
+  if (firstGlyphPosition == NULL) {
+    CFIndex glyphCount = CTRunGetGlyphCount(run);
+    positions = calloc(glyphCount, sizeof(CGPoint));
+    CTRunGetPositions(run, CFRangeMake(0, 0), positions);
+    firstGlyphPosition = positions;
+  }
+
+  CGFloat descent = 0;
+  CGFloat typographicWidth =
+      (CGFloat)CTRunGetTypographicBounds(run, CFRangeMake(0,0), NULL, &descent, NULL);
+
+  CGFloat lineWidth = 1;
+  if ((style & NSUnderlineStyleThick) == NSUnderlineStyleThick) {
+    // NSUnderlineStyleThick is 0x09 and NSUnderlineStyleSingle is 0x01. According to the Apple
+    // documentation, they are supposed to be masks...but they are not acting like masks...
+    lineWidth *= 2;
+  }
+
+  CGContextSetLineWidth(ctx, lineWidth);
+
+  CGContextBeginPath(ctx);
+
+  UIColor *strikethroughColor = CFDictionaryGetValue(attributes, kStrikethroughColorAttributeKey);
+  if (strikethroughColor) {
+    CGContextSetStrokeColorWithColor(ctx, strikethroughColor.CGColor);
+  } else if (_strikethroughColor) {
+    CGContextSetStrokeColorWithColor(ctx, _strikethroughColor.CGColor);
+  }
+
+  UIFont *font = CFDictionaryGetValue(attributes, kFontAttributeKey);
+  font = font ?: self.font;
+  CGFloat strikeHeight = font.xHeight / 2.f + (*firstGlyphPosition).y;
+  
+  // Adjustment for multiline elements.
+  CGPoint pt = CGContextGetTextPosition(ctx);
+  strikeHeight += pt.y;
+
+  // For lines composed of multiple runs, (*firstGlyphPosition).x identifies the start of the run
+  // within the line.
+  CGContextMoveToPoint(ctx, pt.x + (*firstGlyphPosition).x, strikeHeight);
+  CGContextAddLineToPoint(ctx,
+                          pt.x + (*firstGlyphPosition).x + typographicWidth,
+                          strikeHeight);
+  CGContextStrokePath(ctx);
+  if (positions != NULL) {
+    free(positions);
   }
 }
 
@@ -1454,43 +1728,78 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
     return _accessibleElements;
   }
 
-  NSMutableArray* accessibleElements = [NSMutableArray array];
+  NSMutableArray *accessibleElements = [NSMutableArray array];
 
   // NSArray arrayWithArray:self.detectedlinkLocations ensures that we're not working with a nil
   // array.
-  NSArray* allLinks = [[NSArray arrayWithArray:self.detectedlinkLocations]
-                       arrayByAddingObjectsFromArray:self.explicitLinkLocations];
+  NSArray *allLinks = [[NSArray arrayWithArray:self.detectedlinkLocations]
+      arrayByAddingObjectsFromArray:self.explicitLinkLocations];
 
-  for (NSTextCheckingResult* result in allLinks) {
-    NSArray* rectsForLink = [self _rectsForLink:result];
-    if (!NIIsArrayWithObjects(rectsForLink)) {
-      continue;
+  // TODO(kaikaiz): remove the first condition when shouldSortLinksLast is fully deprecated.
+  if (_shouldSortLinksLast || (_linkOrdering != NILinkOrderingOriginal)) {
+    for (NSTextCheckingResult *result in allLinks) {
+      NSArray *rectsForLink = [self _rectsForRange:result.range];
+      if (!NIIsArrayWithObjects(rectsForLink)) {
+        continue;
+      }
+
+      NSString *label = [self.mutableAttributedString.string substringWithRange:result.range];
+      for (NSValue *rectValue in rectsForLink) {
+        NIViewAccessibilityElement *element = [[NIViewAccessibilityElement alloc]
+            initWithAccessibilityContainer:self
+                          frameInContainer:rectValue.CGRectValue];
+        element.accessibilityLabel = label;
+        // Set the frame to fallback on if |element|'s accessibility container is changed
+        // externally.
+        CGRect rectValueInWindowCoordinates = [self convertRect:rectValue.CGRectValue toView:nil];
+        CGRect rectValueInScreenCoordinates =
+            [self.window convertRect:rectValueInWindowCoordinates toWindow:nil];
+        element.accessibilityFrame = rectValueInScreenCoordinates;
+        element.accessibilityTraits = UIAccessibilityTraitLink;
+        [accessibleElements addObject:element];
+      }
     }
 
-    NSString* label = [self.mutableAttributedString.string substringWithRange:result.range];
-    for (NSValue* rectValue in rectsForLink) {
-      NIViewAccessibilityElement* element = [[NIViewAccessibilityElement alloc] initWithAccessibilityContainer:self frameInContainer:rectValue.CGRectValue];
-      element.accessibilityLabel = label;
-      // Set the frame to fallback on if |element|'s accessibility container is changed externally.
-      CGRect rectValueInWindowCoordinates = [self convertRect:rectValue.CGRectValue toView:nil];
-      CGRect rectValueInScreenCoordinates = [self.window convertRect:rectValueInWindowCoordinates toWindow:nil];
-      element.accessibilityFrame = rectValueInScreenCoordinates;
-      element.accessibilityTraits = UIAccessibilityTraitLink;
+    NIViewAccessibilityElement *element =
+        [[NIViewAccessibilityElement alloc] initWithAccessibilityContainer:self
+                                                          frameInContainer:self.bounds];
+    element.accessibilityLabel = self.attributedText.string;
+    // Set the frame to fallback on if |element|'s accessibility container is changed externally.
+    CGRect boundsInWindowCoordinates = [self convertRect:self.bounds toView:nil];
+    CGRect boundsInScreenCoordinates =
+        [self.window convertRect:boundsInWindowCoordinates toWindow:nil];
+    element.accessibilityFrame = boundsInScreenCoordinates;
+    element.accessibilityTraits = UIAccessibilityTraitNone;
+    // TODO(kaikaiz): remove the first condition when shouldSortLinksLast is fully deprecated.
+    if (_shouldSortLinksLast || _linkOrdering == NILinkOrderingLast) {
+      [accessibleElements insertObject:element atIndex:0];
+    } else {
       [accessibleElements addObject:element];
     }
-  }
-
-  NIViewAccessibilityElement* element = [[NIViewAccessibilityElement alloc] initWithAccessibilityContainer:self frameInContainer:self.bounds];
-  element.accessibilityLabel = self.attributedText.string;
-  // Set the frame to fallback on if |element|'s accessibility container is changed externally.
-  CGRect boundsInWindowCoordinates = [self convertRect:self.bounds toView:nil];
-  CGRect boundsInScreenCoordinates = [self.window convertRect:boundsInWindowCoordinates toWindow:nil];
-  element.accessibilityFrame = boundsInScreenCoordinates;
-  element.accessibilityTraits = UIAccessibilityTraitNone;
-  if (_shouldSortLinksLast) {
-    [accessibleElements insertObject:element atIndex:0];
   } else {
-    [accessibleElements addObject:element];
+    NIViewAccessibilityElement *element = nil;
+    NSUInteger start = 0;
+    for (NSTextCheckingResult *result in allLinks) {
+      NSRange range = result.range;
+      element = [self accessibilityElementForRange:NSMakeRange(start, range.location - start)];
+      if (element) {
+        element.accessibilityTraits = UIAccessibilityTraitNone;
+        [accessibleElements addObject:element];
+      }
+      element = [self accessibilityElementForRange:range];
+      if (element) {
+        element.accessibilityTraits = UIAccessibilityTraitLink;
+        [accessibleElements addObject:element];
+      }
+      start = range.location + range.length;
+    }
+
+    element =
+        [self accessibilityElementForRange:NSMakeRange(start, self.attributedText.length - start)];
+    if (element) {
+      element.accessibilityTraits = UIAccessibilityTraitNone;
+      [accessibleElements addObject:element];
+    }
   }
 
   _accessibleElements = [accessibleElements copy];
@@ -1513,9 +1822,9 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   return [self.accessibleElements indexOfObject:element];
 }
 
-#pragma mark - UIActionSheetDelegate
+#pragma mark - NIActionSheetDelegate
 
-- (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)actionSheet:(NIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   if (NSTextCheckingTypeLink == self.actionSheetLink.resultType) {
     if (buttonIndex == 0) {
       [[UIApplication sharedApplication] openURL:self.actionSheetLink.URL];
@@ -1540,7 +1849,12 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   } else if (NSTextCheckingTypeAddress == self.actionSheetLink.resultType) {
     NSString* address = [self.mutableAttributedString.string substringWithRange:self.actionSheetLink.range];
     if (buttonIndex == 0) {
-      [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[[@"http://maps.google.com/maps?q=" stringByAppendingString:address] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+      NSString *escapedAddress =
+          NIStringByAddingPercentEscapesForURLParameterString(address);
+      NSString *URLString =
+          [NSString stringWithFormat:@"https://maps.google.com/maps?q=%@", escapedAddress];
+      NSURL *URL = [NSURL URLWithString:URLString];
+      [[UIApplication sharedApplication] openURL:URL];
 
     } else if (buttonIndex == 1) {
       [[UIPasteboard generalPasteboard] setString:address];
@@ -1558,7 +1872,7 @@ CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedS
   [self setNeedsDisplay];
 }
 
-- (void)actionSheetCancel:(UIActionSheet *)actionSheet {
+- (void)actionSheetCancel:(NIActionSheet *)actionSheet {
   self.actionSheetLink = nil;
   [self setNeedsDisplay];
 }
@@ -1636,11 +1950,11 @@ CGFloat NIImageDelegateGetWidthCallback(void* refCon) {
 
 + (CTTextAlignment)alignmentFromUITextAlignment:(NSTextAlignment)alignment {
   switch (alignment) {
-    case NSTextAlignmentLeft: return kCTLeftTextAlignment;
-    case NSTextAlignmentCenter: return kCTCenterTextAlignment;
-    case NSTextAlignmentRight: return kCTRightTextAlignment;
-    case NSTextAlignmentJustified: return kCTJustifiedTextAlignment;
-    default: return kCTNaturalTextAlignment;
+    case NSTextAlignmentLeft: return kCTTextAlignmentLeft;
+    case NSTextAlignmentCenter: return kCTTextAlignmentCenter;
+    case NSTextAlignmentRight: return kCTTextAlignmentRight;
+    case NSTextAlignmentJustified: return kCTTextAlignmentJustified;
+    default: return kCTTextAlignmentNatural;
   }
 }
 

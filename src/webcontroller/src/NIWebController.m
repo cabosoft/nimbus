@@ -19,15 +19,16 @@
 #import "NIWebController.h"
 
 #import "NimbusCore.h"
+#import <Nimbus/Nimbus-Swift.h>
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
 #error "Nimbus requires ARC support."
 #endif
 
-@interface NIWebController()
+@interface NIWebController() <NIActionSheetDelegate>
 @property (nonatomic, strong) UIWebView* webView;
 @property (nonatomic, strong) UIToolbar* toolbar;
-@property (nonatomic, strong) UIActionSheet* actionSheet;
+@property (nonatomic, strong) NIActionSheet* actionSheet;
 
 @property (nonatomic, strong) UIBarButtonItem* backButton;
 @property (nonatomic, strong) UIBarButtonItem* forwardButton;
@@ -91,7 +92,7 @@
 }
 
 - (void)didTapShareButton {
-  // Dismiss the action menu if the user taps the action button again on the iPad.
+	  // Dismiss the action menu if the user taps the action button again on the iPad.
   if ([self.actionSheet isVisible]) {
     // It shouldn't be possible to tap the share action button again on anything but the iPad.
     NIDASSERT(NIIsPad());
@@ -112,12 +113,11 @@
 
   if (nil == self.actionSheet) {
     self.actionSheet =
-    [[UIActionSheet alloc] initWithTitle:[self.actionSheetURL absoluteString]
+    [[NIActionSheet alloc] initWithTitle:[self.actionSheetURL absoluteString]
                                 delegate:self
                        cancelButtonTitle:nil
                   destructiveButtonTitle:nil
                        otherButtonTitles:nil];
-
     // Let -shouldPresentActionSheet: setup the action sheet
     if (![self shouldPresentActionSheet:self.actionSheet] || self.actionSheet.numberOfButtons == 0) {
       // A subclass decided to handle the action in another way
@@ -131,11 +131,7 @@
     }
   }
 
-  if (NIIsPad()) {
-    [self.actionSheet showFromBarButtonItem:self.actionButton animated:YES];
-  } else {
-    [self.actionSheet showInView:self.view];
-  }
+  [self.actionSheet show:self];
 }
 
 - (void)updateToolbarWithOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -346,10 +342,10 @@
   [self webViewDidFinishLoad:webView];
 }
 
-#pragma mark - UIActionSheetDelegate
+#pragma mark - NIActionSheetDelegate
 
 
-- (void)actionSheet:(UIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)actionSheet:(NIActionSheet*)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   if (actionSheet == self.actionSheet) {
     if (buttonIndex == 0) {
       [[UIApplication sharedApplication] openURL:self.actionSheetURL];
@@ -359,7 +355,7 @@
   }
 }
 
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
+- (void)actionSheet:(NIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
   if (actionSheet == self.actionSheet) {
     self.actionSheet.delegate = nil;
     self.actionSheet = nil;
@@ -415,7 +411,7 @@
   }
 }
 
-- (BOOL)shouldPresentActionSheet:(UIActionSheet *)actionSheet {
+- (BOOL)shouldPresentActionSheet:(NIActionSheet *)actionSheet {
   if (actionSheet == self.actionSheet && nil != self.actionSheetURL) {
     [self.actionSheet addButtonWithTitle:NSLocalizedString(@"Open in Safari", @"")];
     [self.actionSheet addButtonWithTitle:NSLocalizedString(@"Copy URL", @"")];

@@ -20,6 +20,9 @@
 
 #import "NimbusCore.h" // For __NI_DEPRECATED_METHOD
 
+@class NIActionSheet;
+
+
 #if defined __cplusplus
 extern "C" {
 #endif
@@ -35,6 +38,19 @@ extern "C" {
  */
 CGSize NISizeOfAttributedStringConstrainedToSize(NSAttributedString* attributedString, CGSize size, NSInteger numberOfLines);
 
+/**
+ * By default, the size calculation (sizeThatFits:) for a multiline string (w/ newline chars) with
+ * numberOfLines == 1 returns a height that would fit all lines instead of just the first line.
+ * The intent was to return a width that can fit the entire string in one line, but the
+ * implementation didn't account for presence of newline chars in the string.
+ *
+ * When enabled, it fixes such size calculation to return the size for just the first line as
+ * expected. This matches the UILabel size calculation behavior as well.
+ *
+ * This is disabled by default due to existing clients that may depend on the legacy behavior.
+ */
+void NIAttributedLabelEnableSingleLineSizeCalculationFix(void);
+
 #if defined __cplusplus
 };
 #endif
@@ -45,6 +61,12 @@ typedef enum {
   NIVerticalTextAlignmentMiddle,
   NIVerticalTextAlignmentBottom,
 } NIVerticalTextAlignment;
+
+typedef NS_ENUM(NSInteger, NILinkOrdering) {
+  NILinkOrderingFirst = 0, // Sort the links in the text as the first accessible elements
+  NILinkOrderingOriginal, // Won't do any sorting of the links, they will appear in the order in which they occur in the original text
+  NILinkOrderingLast, // Sort the links in the text as the last accessible elements
+};
 
 extern NSString* const NIAttributedLabelLinkAttributeName; // Value is an NSTextCheckingResult.
 
@@ -87,6 +109,7 @@ extern NSString* const NIAttributedLabelLinkAttributeName; // Value is an NSText
 - (void)removeAllExplicitLinks; // Removes all links that were added by addLink:range:. Does not remove autodetected links.
 
 @property (nonatomic, strong) UIColor*      linkColor;                      // Default: self.tintColor (iOS 7) or [UIColor blueColor] (iOS 6)
+@property (nonatomic, strong) UIColor*      strikethroughColor;             // Default: foreground color.
 @property (nonatomic, strong) UIColor*      highlightedLinkBackgroundColor; // Default: [UIColor colorWithWhite:0.5 alpha:0.5
 @property (nonatomic)         BOOL          linksHaveUnderlines;            // Default: NO
 @property (nonatomic, copy)   NSDictionary* attributesForLinks;             // Default: nil
@@ -103,7 +126,9 @@ extern NSString* const NIAttributedLabelLinkAttributeName; // Value is an NSText
 
 @property (nonatomic, copy) NSString* tailTruncationString;
 
-@property (nonatomic) BOOL shouldSortLinksLast; // Sort the links in the text as the last elements in accessible elements. Default: NO
+@property (nonatomic) BOOL shouldSortLinksLast DEPRECATED_MSG_ATTRIBUTE("Use linkOrdering instead. Besides sorting links as first or last accessible elements, we are introducing a new way which sorts links in their original order and breaks the text into fragments when necessary."); // Sort the links in the text as the last elements in accessible elements. Default: NO
+
+@property (nonatomic) NILinkOrdering linkOrdering; // Define how to sort links in the text. Default: NILinkOrderFirst
 
 - (void)setFont:(UIFont *)font            range:(NSRange)range;
 - (void)setStrokeColor:(UIColor *)color   range:(NSRange)range;
@@ -117,6 +142,8 @@ extern NSString* const NIAttributedLabelLinkAttributeName; // Value is an NSText
 - (void)insertImage:(UIImage *)image atIndex:(NSInteger)index margins:(UIEdgeInsets)margins verticalTextAlignment:(NIVerticalTextAlignment)verticalTextAlignment;
 
 - (void)invalidateAccessibleElements;
+
+- (NSTextCheckingResult *)linkAtPoint:(CGPoint)point;
 
 @property (nonatomic, weak) IBOutlet id<NIAttributedLabelDelegate> delegate;
 @end
@@ -158,7 +185,7 @@ extern NSString* const NIAttributedLabelLinkAttributeName; // Value is an NSText
  * @returns YES if @c actionSheet should be displayed. NO if @c actionSheet should not be
  *               displayed.
  */
-- (BOOL)attributedLabel:(NIAttributedLabel *)attributedLabel shouldPresentActionSheet:(UIActionSheet *)actionSheet withTextCheckingResult:(NSTextCheckingResult *)result atPoint:(CGPoint)point;
+- (BOOL)attributedLabel:(NIAttributedLabel *)attributedLabel shouldPresentActionSheet:(NIActionSheet *)actionSheet withTextCheckingResult:(NSTextCheckingResult *)result atPoint:(CGPoint)point NS_DEPRECATED_IOS(2_0, 8_3);
 
 @end
 
